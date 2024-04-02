@@ -4,6 +4,7 @@ import 'dart:io'
 import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ms/core/local/shared_preferences_manager.dart';
 
 import 'pretty_dio_logger.dart';
 
@@ -117,7 +118,10 @@ extension AppDioExtension on Dio {
   Future requestInterceptor(
       RequestOptions options, RequestInterceptorHandler handler) async {
     try {
-      final _token = '';
+      var _token = await SharedPrefManager.getJWTToken();
+      if(_token == null) {
+        _token = '';
+      }
       final _appSecret = '';
       final _selectedMenuId = '';
       final currentBaseUrl = '';
@@ -141,13 +145,13 @@ extension AppDioExtension on Dio {
   Future responseInterceptor(
       Response response, ResponseInterceptorHandler handler) async {
     try {
-      if (response.data is Map && response.data?['error_code'] != 200) {
-        return handler.reject(DioError(
-          requestOptions: response.requestOptions,
-          response: response,
-          type: DioErrorType.response,
-        ));
-      }
+      // if (response.data is Map && response.data?['error_code'] != 200) {
+      //   return handler.reject(DioError(
+      //     requestOptions: response.requestOptions,
+      //     response: response,
+      //     type: DioErrorType.response,
+      //   ));
+      // }
 
       return handler.next(response);
     } catch (e) {

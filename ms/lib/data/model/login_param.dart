@@ -2,23 +2,26 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'login_param.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(createFactory: false)
 class LoginParam {
-  @JsonKey(name: 'username')
-  final String? username;
-  @JsonKey(name: 'email')
-  final String? email;
-  @JsonKey(name: 'password')
-  final String? password;
-  @JsonKey(name: 'role')
-  final Set? role;
+  String username;
+  String password;
+
 
   LoginParam({
-    this.username,
-    this.email,
-    this.password,
-    this.role
+    required this.username,
+    required this.password,
   });
 
-  factory LoginParam.fromJson(Map<String, dynamic> json) => _$LoginParamFromJson(json);
+  Map<String, dynamic> toJson() => _$LoginParamToJson(this);
+
+  LoginParam copyWith({
+    String? username,
+    String? password,
+  }) {
+    return LoginParam(
+      username: username ?? this.username,
+      password: password ?? this.password,
+    );
+  }
 }

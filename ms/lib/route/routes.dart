@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ms/core/base/page_material_route.dart';
+import 'package:ms/data/model/user.dart';
+import 'package:ms/view/home/home_screen.dart';
+import 'package:ms/view/login/cubit/login_cubit.dart';
 import 'package:ms/view/login/login_screen.dart';
 import 'package:ms/view/splash/splash_screen.dart';
-enum AppRoute {
-  SPALSH_SCREEN,
-  LOGIN_SCREEN
-}
+
+enum AppRoute { SPALSH_SCREEN, LOGIN_SCREEN, HOME_SCREEN }
 
 extension AppRouteExt on AppRoute {
   String get name {
@@ -15,6 +16,8 @@ extension AppRouteExt on AppRoute {
         return '/splash';
       case AppRoute.LOGIN_SCREEN:
         return '/login';
+      case AppRoute.HOME_SCREEN:
+        return '/home';
     }
   }
 
@@ -42,17 +45,31 @@ extension AppRouteExt on AppRoute {
             settings: settings,
             page: () => const LoginScreen(),
             bindings: [
-              // BindingsBuilder.put(() => SplashCubit(Get.find())),
+              BindingsBuilder.put(() => LoginCubit(Get.find(), Get.find())),
             ],
-            transition: Transition.fade);  
+            transition: Transition.fade);
+      case AppRoute.HOME_SCREEN:
+        final dynamic argument = settings.arguments;
+        final User user = argument;
+        return PageMaterialRoute(
+            settings: settings,
+            page: () => HomeScreen(user: user),
+            bindings: [
+              // BindingsBuilder.put(() => (Get.find())),
+            ],
+            transition: Transition.fade);
       default:
-        return GetPageRoute(settings: settings, curve: Curves.ease, transition: Transition.rightToLeft
+        return GetPageRoute(
+            settings: settings,
+            curve: Curves.ease,
+            transition: Transition.rightToLeft
             // page: () => EmptyScreen(desc: 'No route defined for ${settings.name}'),
             );
     }
   }
 
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
   static Route<dynamic> bindingRoute(RouteSettings settings) {
     return AppRouteExt.generateRoute(settings);
   }
