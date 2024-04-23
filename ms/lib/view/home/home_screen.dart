@@ -7,6 +7,7 @@ import 'package:ms/core/component/ms_loading.dart';
 import 'package:ms/core/component/ms_theme.dart';
 import 'package:ms/core/utils/ms_utils.dart';
 import 'package:ms/data/model/transaction_parent.dart';
+import 'package:ms/data/model/transactions.dart';
 import 'package:ms/data/model/user.dart';
 import 'package:ms/view/account/account_screen.dart';
 import 'package:ms/view/addon/addon_screen.dart';
@@ -36,6 +37,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late final ValueNotifier<String> _groupAvatar = ValueNotifier<String>("");
   late final ValueNotifier<String> _note = ValueNotifier<String>("");
   late final ValueNotifier<int> _date = ValueNotifier<int>(0);
+  late int categoryId;
+  late int transactionType;
 
   @override
   void initState() {
@@ -89,11 +92,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Navigator.of(context).pop();
         pageIndexNotifier.value = 0;
         _group.value = "";
+        _note.value = "";
+        _moneyController.text = "";
+        _groupAvatar.value = "";
       },
       onModalDismissedWithBarrierTap: () {
         Navigator.of(context).pop();
         pageIndexNotifier.value = 0;
         _group.value = "";
+        _note.value = "";
+        _moneyController.text = "";
+        _groupAvatar.value = "";
       },
       maxDialogWidth: 560,
       minDialogWidth: 400,
@@ -110,9 +119,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       stickyActionBar: Padding(
         padding: const EdgeInsets.all(10),
         child: ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             if (isValidTransaction(_moneyController.text, _group.value,
                 _note.value, _date.value.toString())) {
+              Transactions transactions = Transactions();
+              transactions.amount = int.parse(_moneyController.text);
+              transactions.categoryId = categoryId;
+              transactions.categoryName = _group.value;
+              transactions.description = _note.value;
+              transactions.transactionType = transactionType;
+              transactions.icon = _groupAvatar.value;
+              transactions.transactionDate =
+                  DateTime.now().millisecondsSinceEpoch;
+              print("Ms =====>" + transactions.toString());
+              await Get.find<HomeCubit>().createTransaction(transactions);
               Navigator.of(modalSheetContext).pop();
               _group.value = "";
               _note.value = "";
@@ -418,6 +438,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   transactionParent1[index].icon!;
                               pageIndexNotifier.value =
                                   pageIndexNotifier.value - 1;
+                              categoryId = transactionParent1[index].id!;
+                              transactionType =
+                                  transactionParent1[index].transactionType!;
                             },
                             height: 50,
                             color: Colors.black12,
@@ -475,6 +498,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                     .icon!;
                                             pageIndexNotifier.value =
                                                 pageIndexNotifier.value - 1;
+                                            categoryId =
+                                                transactionParent1[index].id!;
+                                            transactionType =
+                                                transactionParent1[index]
+                                                    .transactionType!;
                                           },
                                           height: 50,
                                           color: Colors.black12,
@@ -537,6 +565,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   transactionParent2[index].icon!;
                               pageIndexNotifier.value =
                                   pageIndexNotifier.value - 1;
+                              categoryId = transactionParent2[index].id!;
+                              transactionType =
+                                  transactionParent2[index].transactionType!;
                             },
                             height: 50,
                             color: Colors.black12,
@@ -594,6 +625,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                     .icon!;
                                             pageIndexNotifier.value =
                                                 pageIndexNotifier.value - 1;
+                                            categoryId =
+                                                transactionParent2[index].id!;
+                                            transactionType =
+                                                transactionParent2[index]
+                                                    .transactionType!;
                                           },
                                           height: 50,
                                           color: Colors.black12,

@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:ms/data/model/transactions.dart';
 import 'package:ms/data/source/business/ms_repositoy.dart';
 
 part 'home_state.dart';
@@ -15,6 +16,17 @@ class HomeCubit extends Cubit<HomeState> {
       emit(SearchTransactionParentSuccess(response: userInfo));
     } catch (e) {
       emit(SearchTransactionParentFail(error: e));
+    }
+  }
+
+    Future createTransaction(Transactions transactions) async {
+    try {
+      emit(CreateTransactionLoading());
+      final userInfo =
+          await api.createTransaction(transactions);
+      emit(CreateTransactionSuccess(response: userInfo));
+    } catch (e) {
+      emit(CreateTransactionFail(error: e));
     }
   }
 }

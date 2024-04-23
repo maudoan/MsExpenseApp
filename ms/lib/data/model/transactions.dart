@@ -5,21 +5,21 @@ part 'transactions.g.dart';
 @JsonSerializable()
 class Transactions {
   @JsonKey(name: 'categoryName')
-  final String? categoryName;
+  String? categoryName;
   @JsonKey(name: 'amount')
-  final int? amount;
+  int? amount;
   @JsonKey(name: 'created')
-  final int? created;
+  int? created;
   @JsonKey(name: 'icon')
-  final String? icon;
+  String? icon;
   @JsonKey(name: 'transactionDate')
-  final int? transactionDate;
+  int? transactionDate;
   @JsonKey(name: 'transactionType')
-  final int? transactionType;
+  int? transactionType;
   @JsonKey(name: 'description')
-  final String? description;
+  String? description;
   @JsonKey(name: 'categoryId')
-  final int? categoryId;
+  int? categoryId;
 
   Transactions(
       {this.categoryName,
@@ -33,4 +33,6 @@ class Transactions {
 
   factory Transactions.fromJson(Map<String, dynamic> json) =>
       _$TransactionsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TransactionsToJson(this);
 }

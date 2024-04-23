@@ -17,3 +17,17 @@ class SearchTransactionParentFail extends HomeState {
   SearchTransactionParentFail({this.error});
   final dynamic error;
 }
+
+class CreateTransactionInProgress extends HomeState {}
+
+class CreateTransactionLoading extends HomeState {}
+
+class CreateTransactionSuccess extends HomeState {
+  CreateTransactionSuccess({this.response});
+  final dynamic response;
+}
+
+class CreateTransactionFail extends HomeState {
+  CreateTransactionFail({this.error});
+  final dynamic error;
+}
