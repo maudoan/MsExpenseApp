@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:ms/core/base/base_response.dart';
 import 'package:ms/core/network/api_helper.dart';
+import 'package:ms/data/model/transaction_parent.dart';
 import 'package:ms/data/model/user.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -18,4 +19,7 @@ abstract class MsService {
   
   @GET('http://10.2.9.149:8081/api/users/current')
   Future<HttpResponse<BaseResponse<User>>> getCurrentUser();
+
+  @GET('http://10.2.9.149:8081/api/transaction-category-parent/search')
+  Future<HttpResponse<List<TransactionParent>>> searchTransactionParent(@Query("query") String query);
 }

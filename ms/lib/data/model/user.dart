@@ -17,6 +17,8 @@ class User {
   final int? totalBalance;
   @JsonKey(name: 'transactions')
   final List<Transactions>? transactions;
+  @JsonKey(name: 'id')
+  final int? id;
 
   User(
       {this.username,
@@ -24,7 +26,8 @@ class User {
       this.password,
       this.role,
       this.totalBalance,
-      this.transactions});
+      this.transactions,
+      this.id});
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 }

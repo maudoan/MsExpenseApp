@@ -1,4 +1,4 @@
-import 'package:ms/data/model/login_param.dart';
+import 'package:ms/data/model/transaction_parent.dart';
 import 'package:ms/data/model/user.dart';
 import 'package:ms/data/source/business/ms_repositoy.dart';
 
@@ -11,7 +11,7 @@ class MsRepositoryImpl implements MsRepository {
   }
   
   @override
-  Future login(LoginParam param) {
+  Future<List<TransactionParent>> searchTransactionParent(String query) {
     throw UnimplementedError();
   }
   

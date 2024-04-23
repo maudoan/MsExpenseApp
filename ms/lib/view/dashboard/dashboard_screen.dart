@@ -209,6 +209,7 @@ class _DashBoardState extends State<DashBoard>
                           controller: _tabController,
                           labelColor: Colors.white,
                           unselectedLabelColor: Colors.black,
+                          indicatorSize: TabBarIndicatorSize.tab,
                           dividerHeight: 0,
                           indicator: BoxDecoration(
                             borderRadius: BorderRadius.circular(

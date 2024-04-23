@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:ms/core/component/ms_color.dart';
+import 'package:ms/core/component/ms_loading.dart';
+import 'package:ms/core/component/ms_theme.dart';
+import 'package:ms/core/utils/ms_utils.dart';
+import 'package:ms/data/model/transaction_parent.dart';
 import 'package:ms/data/model/user.dart';
 import 'package:ms/view/account/account_screen.dart';
 import 'package:ms/view/addon/addon_screen.dart';
 import 'package:ms/view/budget/budget_screen.dart';
 import 'package:ms/view/dashboard/dashboard_screen.dart';
+import 'package:ms/view/home/cubit/home_cubit.dart';
 import 'package:ms/view/transaction/transaction_screen.dart';
+import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({required this.user, Key? key}) : super(key: key);
@@ -13,22 +23,34 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  late User _user; // Biến để lưu trữ giá trị user
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+  late User _user;
+  late TabController _tabController;
+  late List<TransactionParent> transactionParent1 = [];
+  late List<TransactionParent> transactionParent2 = [];
+  int selectedIndex = 0;
+  late List<Widget> widgetOptions;
+  final pageIndexNotifier = ValueNotifier(0);
+  late final TextEditingController _moneyController = TextEditingController();
+  late final ValueNotifier<String> _group = ValueNotifier<String>("");
+  late final ValueNotifier<String> _groupAvatar = ValueNotifier<String>("");
+  late final ValueNotifier<String> _note = ValueNotifier<String>("");
+  late final ValueNotifier<int> _date = ValueNotifier<int>(0);
 
   @override
   void initState() {
+    _tabController = TabController(length: 2, vsync: this);
+    Get.find<HomeCubit>().searchTransactionParent(
+        "userId==${widget.user.id};transactionType==1");
+    Get.find<HomeCubit>().searchTransactionParent(
+        "userId==${widget.user.id};transactionType==2");
+    _user = widget.user;
     super.initState();
-    _user = widget.user; // Lưu giá trị user vào _user khi initState được gọi
   }
-
-  int selectedIndex = 0;
-  late List<Widget> widgetOptions; // Chuyển sang sử dụng late để tránh lỗi
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Khởi tạo widgetOptions ở đây khi đã có giá trị của _user
     widgetOptions = [
       DashBoard(user: _user),
       Transaction(),
@@ -39,9 +61,707 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void onItemTapped(int index) {
-    setState(() {
-      selectedIndex = index;
-    });
+    if (index == 2) {
+      _showAddonBottomSheet(context);
+    } else {
+      setState(() {
+        selectedIndex = index;
+      });
+    }
+  }
+
+  void _showAddonBottomSheet(BuildContext context) {
+    WoltModalSheet.show<void>(
+      pageIndexNotifier: pageIndexNotifier,
+      context: context,
+      pageListBuilder: (modalSheetContext) {
+        final textTheme = Theme.of(context).textTheme;
+        return [
+          page1(modalSheetContext, textTheme),
+          page2(modalSheetContext, textTheme),
+          page3(modalSheetContext, textTheme),
+        ];
+      },
+      modalTypeBuilder: (context) {
+        return WoltModalType.bottomSheet;
+      },
+      onModalDismissedWithDrag: () {
+        Navigator.of(context).pop();
+        pageIndexNotifier.value = 0;
+        _group.value = "";
+      },
+      onModalDismissedWithBarrierTap: () {
+        Navigator.of(context).pop();
+        pageIndexNotifier.value = 0;
+        _group.value = "";
+      },
+      maxDialogWidth: 560,
+      minDialogWidth: 400,
+      minPageHeight: 0.0,
+      maxPageHeight: 0.9,
+    );
+  }
+
+  SliverWoltModalSheetPage page1(
+      BuildContext modalSheetContext, TextTheme textTheme) {
+    return WoltModalSheetPage(
+      backgroundColor: const Color.fromARGB(255, 77, 75, 75),
+      hasSabGradient: false,
+      stickyActionBar: Padding(
+        padding: const EdgeInsets.all(10),
+        child: ElevatedButton(
+          onPressed: () {
+            if (isValidTransaction(_moneyController.text, _group.value,
+                _note.value, _date.value.toString())) {
+              Navigator.of(modalSheetContext).pop();
+              _group.value = "";
+              _note.value = "";
+              _moneyController.text = "";
+            }
+          },
+          child: SizedBox(
+            height: 16,
+            width: double.infinity,
+            child: Center(
+                child: Text('Lưu',
+                    style: MsTheme.of(context)
+                        .title1
+                        .copyWith(color: MsColors.black))),
+          ),
+        ),
+      ),
+      topBarTitle: Text('Thêm giao dịch',
+          style: MsTheme.of(context).title1.copyWith(color: MsColors.black)),
+      isTopBarLayerAlwaysVisible: true,
+      leadingNavBarWidget: TextButton(
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.black,
+          textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        onPressed: () {
+          Navigator.of(modalSheetContext).pop();
+          _group.value = "";
+          _note.value = "";
+          _moneyController.text = "";
+          _groupAvatar.value = "";
+        },
+        child: const Text('Hủy'),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 120),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                    color: Color.fromARGB(137, 141, 131, 131)),
+                child: Column(
+                  children: [
+                    Padding(
+                        padding: const EdgeInsets.only(left: 15),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.money),
+                            const SizedBox(width: 10),
+                            Expanded(
+                                child: TextField(
+                              keyboardType: TextInputType.number,
+                              controller: _moneyController,
+                              decoration: InputDecoration(
+                                hintText: 'Số tiền',
+                                border: InputBorder.none,
+                                suffixIcon: IconButton(
+                                  onPressed: _moneyController.clear,
+                                  icon: const Icon(Icons.clear, size: 20),
+                                ),
+                              ),
+                            ))
+                          ],
+                        )),
+                    const Divider(
+                      height: 10,
+                    ),
+                    MaterialButton(
+                      onPressed: () async {
+                        pageIndexNotifier.value = pageIndexNotifier.value + 1;
+                      },
+                      height: 50,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          ValueListenableBuilder<String>(
+                            builder: (BuildContext context, String value,
+                                Widget? child) {
+                              return ClipOval(
+                                child: Container(
+                                  color: const Color.fromRGBO(143, 148, 251, 1),
+                                  padding: const EdgeInsets.all(8),
+                                  child: _groupAvatar.value.isEmpty
+                                      ? Image.asset(
+                                          'assets/images/dog.png',
+                                          width: 25,
+                                          height: 25,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.asset(
+                                          MsUtils.getPathIcons(
+                                              _groupAvatar.value),
+                                          width: 25,
+                                          height: 25,
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
+                              );
+                            },
+                            valueListenable: _group,
+                          ),
+                          const SizedBox(width: 10),
+                          ValueListenableBuilder<String>(
+                            builder: (BuildContext context, String value,
+                                Widget? child) {
+                              return Text(value.isEmpty ? "Chọn nhóm" : value,
+                                  style: MsTheme.of(context).title1.copyWith(
+                                      color: Colors.black.withOpacity(0.5)));
+                            },
+                            valueListenable: _group,
+                          ),
+                          const Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Icon(
+                                Icons.arrow_forward_ios_outlined,
+                                size: 20,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    const Divider(
+                      height: 10,
+                    ),
+                    MaterialButton(
+                        onPressed: () async {
+                          pageIndexNotifier.value = 2;
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.notes),
+                            const SizedBox(width: 10),
+                            ValueListenableBuilder<String>(
+                              builder: (BuildContext context, String value,
+                                  Widget? child) {
+                                return Text(value.isEmpty ? "Ghi chú" : value,
+                                    style: MsTheme.of(context).title1.copyWith(
+                                        color: Colors.black.withOpacity(0.5)));
+                              },
+                              valueListenable: _note,
+                            ),
+                            const Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Icon(
+                                  Icons.arrow_forward_ios_outlined,
+                                  size: 20,
+                                ),
+                              ),
+                            )
+                          ],
+                        )),
+                    const Divider(
+                      height: 10,
+                    ),
+                    MaterialButton(
+                        onPressed: () async {},
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.calendar_month),
+                            const SizedBox(width: 10),
+                            ValueListenableBuilder<int>(
+                              builder: (BuildContext context, int value,
+                                  Widget? child) {
+                                return Text(formatDate(),
+                                    style: MsTheme.of(context).title1.copyWith(
+                                        color: Colors.black.withOpacity(0.5)));
+                              },
+                              valueListenable: _date,
+                            ),
+                            const Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Icon(
+                                  Icons.arrow_forward_ios_outlined,
+                                  size: 20,
+                                ),
+                              ),
+                            )
+                          ],
+                        )),
+                    const Divider(
+                      height: 10,
+                    ),
+                    Padding(
+                        padding: const EdgeInsets.only(left: 15),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.wallet),
+                            TextButton(
+                              onPressed: Navigator.of(modalSheetContext).pop,
+                              child: Text(
+                                'Tiền mặt',
+                                style: MsTheme.of(context).title1.copyWith(
+                                    color: Colors.black.withOpacity(0.6)),
+                              ),
+                            )
+                          ],
+                        ))
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  SliverWoltModalSheetPage page2(
+      BuildContext modalSheetContext, TextTheme textTheme) {
+    return SliverWoltModalSheetPage(
+        isTopBarLayerAlwaysVisible: true,
+        navBarHeight: 80,
+        topBarTitle: Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: Column(
+              children: [
+                Center(
+                    child: Text("Chọn nhóm",
+                        style: MsTheme.of(context)
+                            .title1
+                            .copyWith(color: MsColors.black))),
+                Container(
+                  height: 35,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                      10,
+                    ),
+                    color: Colors.grey[200],
+                  ),
+                  child: TabBar(
+                    onTap: (index) {
+                      if (index == 0) {
+                        Get.find<HomeCubit>().searchTransactionParent(
+                            "userId==${widget.user.id};transactionType==1");
+                      } else {
+                        Get.find<HomeCubit>().searchTransactionParent(
+                            "userId==${widget.user.id};transactionType==2");
+                      }
+                    },
+                    controller: _tabController,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.black,
+                    dividerHeight: 0,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                          10,
+                        ),
+                        color: MsColors.grey,
+                        shape: BoxShape.rectangle),
+                    tabs: const [
+                      Tab(
+                        text: 'Khoản chi',
+                      ),
+                      Tab(
+                        text: 'Khoản thu',
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            )),
+        leadingNavBarWidget: IconButton(
+          padding: const EdgeInsets.only(left: 16, right: 16),
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () =>
+              pageIndexNotifier.value = pageIndexNotifier.value - 1,
+        ),
+        trailingNavBarWidget: IconButton(
+          padding: const EdgeInsets.only(left: 16, right: 16),
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            Navigator.of(modalSheetContext).pop();
+            pageIndexNotifier.value = 0;
+            _group.value = "";
+          },
+        ),
+        hasSabGradient: false,
+        mainContentSlivers: [
+          SliverFillRemaining(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: transactionParent1.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Divider(height: 10, color: Colors.grey),
+                          MaterialButton(
+                            onPressed: () async {
+                              _group.value = transactionParent1[index].name!;
+                              _groupAvatar.value =
+                                  transactionParent1[index].icon!;
+                              pageIndexNotifier.value =
+                                  pageIndexNotifier.value - 1;
+                            },
+                            height: 50,
+                            color: Colors.black12,
+                            child: Row(
+                              children: [
+                                ClipOval(
+                                  child: Container(
+                                    color:
+                                        const Color.fromRGBO(143, 148, 251, 1),
+                                    padding: const EdgeInsets.all(8),
+                                    child: Image.asset(
+                                      MsUtils.getPathIcons(
+                                          transactionParent1[index].icon!),
+                                      width: 25,
+                                      height: 25,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  transactionParent1[index].name ?? "MS",
+                                  style: MsTheme.of(context)
+                                      .title1
+                                      .copyWith(color: MsColors.textWhite),
+                                )
+                              ],
+                            ),
+                          ),
+                          transactionParent1[index].transactionCategoryChilds !=
+                                  null
+                              ? ListView.builder(
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  itemCount: transactionParent1[index]
+                                      .transactionCategoryChilds
+                                      ?.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index1) {
+                                    return Column(
+                                      children: [
+                                        const Divider(
+                                            height: 10, color: Colors.grey),
+                                        MaterialButton(
+                                          onPressed: () async {
+                                            _group.value =
+                                                transactionParent1[index]
+                                                    .transactionCategoryChilds![
+                                                        index1]
+                                                    .name!;
+                                            _groupAvatar.value =
+                                                transactionParent1[index]
+                                                    .transactionCategoryChilds![
+                                                        index1]
+                                                    .icon!;
+                                            pageIndexNotifier.value =
+                                                pageIndexNotifier.value - 1;
+                                          },
+                                          height: 50,
+                                          color: Colors.black12,
+                                          child: Row(
+                                            children: [
+                                              const SizedBox(width: 30),
+                                              ClipOval(
+                                                child: Container(
+                                                  color: const Color.fromARGB(
+                                                      255, 19, 204, 43),
+                                                  padding:
+                                                      const EdgeInsets.all(8),
+                                                  child: Image.asset(
+                                                    MsUtils.getPathIcons(
+                                                        transactionParent1[
+                                                                index]
+                                                            .transactionCategoryChilds![
+                                                                index1]
+                                                            .icon!),
+                                                    width: 25,
+                                                    height: 25,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Text(
+                                                transactionParent1[index]
+                                                        .transactionCategoryChilds?[
+                                                            index1]
+                                                        .name ??
+                                                    "MS",
+                                                style: MsTheme.of(context)
+                                                    .title1
+                                                    .copyWith(
+                                                        color:
+                                                            MsColors.textWhite),
+                                              )
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    );
+                                  },
+                                )
+                              : Container(),
+                        ],
+                      );
+                    }),
+                ListView.builder(
+                    itemCount: transactionParent2.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Column(
+                        children: [
+                          const Divider(height: 10, color: Colors.grey),
+                          MaterialButton(
+                            onPressed: () async {
+                              _group.value = transactionParent2[index].name!;
+                              _groupAvatar.value =
+                                  transactionParent2[index].icon!;
+                              pageIndexNotifier.value =
+                                  pageIndexNotifier.value - 1;
+                            },
+                            height: 50,
+                            color: Colors.black12,
+                            child: Row(
+                              children: [
+                                ClipOval(
+                                  child: Container(
+                                    color:
+                                        const Color.fromRGBO(143, 148, 251, 1),
+                                    padding: const EdgeInsets.all(8),
+                                    child: Image.asset(
+                                      MsUtils.getPathIcons(
+                                          transactionParent2[index].icon!),
+                                      width: 25,
+                                      height: 25,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  transactionParent2[index].name ?? "MS",
+                                  style: MsTheme.of(context)
+                                      .title1
+                                      .copyWith(color: MsColors.textWhite),
+                                )
+                              ],
+                            ),
+                          ),
+                          transactionParent2[index].transactionCategoryChilds !=
+                                  null
+                              ? ListView.builder(
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  itemCount: transactionParent2[index]
+                                      .transactionCategoryChilds
+                                      ?.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index1) {
+                                    return Column(
+                                      children: [
+                                        const Divider(
+                                            height: 10, color: Colors.grey),
+                                        MaterialButton(
+                                          onPressed: () async {
+                                            _group.value =
+                                                transactionParent2[index]
+                                                    .transactionCategoryChilds![
+                                                        index1]
+                                                    .name!;
+                                            _groupAvatar.value =
+                                                transactionParent2[index]
+                                                    .transactionCategoryChilds![
+                                                        index1]
+                                                    .icon!;
+                                            pageIndexNotifier.value =
+                                                pageIndexNotifier.value - 1;
+                                          },
+                                          height: 50,
+                                          color: Colors.black12,
+                                          child: Row(
+                                            children: [
+                                              const SizedBox(width: 30),
+                                              ClipOval(
+                                                child: Container(
+                                                  color: const Color.fromARGB(
+                                                      255, 19, 204, 43),
+                                                  padding:
+                                                      const EdgeInsets.all(8),
+                                                  child: Image.asset(
+                                                    MsUtils.getPathIcons(
+                                                        transactionParent2[
+                                                                index]
+                                                            .transactionCategoryChilds![
+                                                                index1]
+                                                            .icon!),
+                                                    width: 25,
+                                                    height: 25,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Text(
+                                                transactionParent2[index]
+                                                        .transactionCategoryChilds?[
+                                                            index1]
+                                                        .name ??
+                                                    "MS",
+                                                style: MsTheme.of(context)
+                                                    .title1
+                                                    .copyWith(
+                                                        color:
+                                                            MsColors.textWhite),
+                                              )
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    );
+                                  },
+                                )
+                              : Container(),
+                        ],
+                      );
+                    }),
+              ],
+            ),
+          ),
+        ]);
+  }
+
+  SliverWoltModalSheetPage page3(
+      BuildContext modalSheetContext, TextTheme textTheme) {
+    return SliverWoltModalSheetPage(
+        isTopBarLayerAlwaysVisible: true,
+        topBarTitle: Center(
+            child: Text("Ghi chú",
+                style: MsTheme.of(context)
+                    .title1
+                    .copyWith(color: MsColors.black))),
+        leadingNavBarWidget: IconButton(
+          padding: const EdgeInsets.only(left: 16, right: 16),
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () {
+            pageIndexNotifier.value = 0;
+            _note.value = "";
+          },
+        ),
+        trailingNavBarWidget: IconButton(
+          padding: const EdgeInsets.only(left: 16, right: 16),
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            Navigator.of(modalSheetContext).pop();
+            pageIndexNotifier.value = 0;
+            _note.value = "";
+          },
+        ),
+        hasSabGradient: false,
+        mainContentSlivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+            sliver: SliverToBoxAdapter(
+              child: TextField(
+                keyboardType: TextInputType.text,
+                minLines: 10,
+                maxLines: null,
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(), hintText: "Nhập ghi chú"),
+                onSubmitted: (value) {
+                  _note.value = value;
+                  pageIndexNotifier.value = 0;
+                },
+              ),
+            ),
+          ),
+        ]);
+  }
+
+  formatDate() {
+    var dateTime = DateTime.now();
+    var formattedDate =
+        DateFormat('EEEE, dd MMMM yyyy', 'vi_VN').format(dateTime);
+    return formattedDate;
+  }
+
+  bool isValidTransaction(
+      String money, String group, String note, String date) {
+    if (money.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Số tiền không được bỏ trống'),
+          action: SnackBarAction(
+            label: 'Đóng',
+            onPressed: () {
+              // Code to execute.
+            },
+          ),
+        ),
+      );
+      return false;
+    }
+    if (group.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Nhóm không được bỏ trống'),
+          action: SnackBarAction(
+            label: 'Đóng',
+            onPressed: () {
+              // Code to execute.
+            },
+          ),
+        ),
+      );
+      return false;
+    }
+    if (note.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Chú thích không được bỏ trống'),
+          action: SnackBarAction(
+            label: 'Đóng',
+            onPressed: () {
+              // Code to execute.
+            },
+          ),
+        ),
+      );
+      return false;
+    }
+    if (date.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Ngày tháng không được bỏ trống'),
+          action: SnackBarAction(
+            label: 'Đóng',
+            onPressed: () {
+              // Code to execute.
+            },
+          ),
+        ),
+      );
+      return false;
+    }
+    return true;
   }
 
   @override
@@ -51,7 +771,8 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Center(
             child: widgetOptions.elementAt(selectedIndex),
-          )
+          ),
+          _buildListener()
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -81,6 +802,29 @@ class _HomeScreenState extends State<HomeScreen> {
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.black,
           unselectedItemColor: Colors.grey),
+    );
+  }
+
+  Widget _buildListener() {
+    return BlocListener(
+      bloc: Get.find<HomeCubit>(),
+      listener: (context, state) async {
+        if (state is SearchTransactionParentLoading) {
+          MSLoading.show();
+          return;
+        }
+        MSLoading.dismiss();
+
+        if (state is SearchTransactionParentSuccess) {
+          if (state.response[0].transactionType == 1) {
+            transactionParent1 = state.response;
+          } else {
+            transactionParent2 = state.response;
+          }
+          return;
+        }
+      },
+      child: Container(),
     );
   }
 }

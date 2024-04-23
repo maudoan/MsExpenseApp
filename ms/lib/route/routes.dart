@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ms/core/base/page_material_route.dart';
 import 'package:ms/data/model/user.dart';
+import 'package:ms/view/home/cubit/home_cubit.dart';
 import 'package:ms/view/home/home_screen.dart';
 import 'package:ms/view/login/cubit/login_cubit.dart';
 import 'package:ms/view/login/login_screen.dart';
@@ -55,16 +56,16 @@ extension AppRouteExt on AppRoute {
             settings: settings,
             page: () => HomeScreen(user: user),
             bindings: [
-              // BindingsBuilder.put(() => (Get.find())),
+              BindingsBuilder.put(() => HomeCubit(Get.find())),
             ],
             transition: Transition.fade);
       default:
         return GetPageRoute(
-            settings: settings,
-            curve: Curves.ease,
-            transition: Transition.rightToLeft
-            // page: () => EmptyScreen(desc: 'No route defined for ${settings.name}'),
-            );
+          settings: settings,
+          curve: Curves.ease,
+          transition: Transition.rightToLeft,
+          page: () => const SplashScreen(),
+        );
     }
   }
 
