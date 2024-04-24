@@ -18,11 +18,11 @@ abstract class AuthService {
     return client;
   }
 
-  @POST('http://192.168.0.7:8081/api/users/register')
+  @POST('http://10.2.9.149:8081/api/users/register')
   Future<HttpResponse<BaseResponse<User>>> register(
       @Body() Map<String, dynamic> map);
 
-  @POST('http://192.168.0.7:8081/api/auth/login')
+  @POST('http://10.2.9.149:8081/api/auth/login')
   Future<HttpResponse<BaseResponse<User>>> login(
       @Body() LoginParam? loginParam);
 }

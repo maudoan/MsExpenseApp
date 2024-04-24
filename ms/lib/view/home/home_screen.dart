@@ -114,14 +114,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   SliverWoltModalSheetPage page1(
       BuildContext modalSheetContext, TextTheme textTheme) {
     return WoltModalSheetPage(
-      backgroundColor: const Color.fromARGB(255, 77, 75, 75),
+      backgroundColor: const Color.fromARGB(255, 34, 32, 32),
       hasSabGradient: false,
       stickyActionBar: Padding(
         padding: const EdgeInsets.all(10),
         child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(135, 68, 63, 63)),
           onPressed: () async {
             if (isValidTransaction(_moneyController.text, _group.value,
                 _note.value, _date.value.toString())) {
+              Navigator.of(modalSheetContext).pop();
               Transactions transactions = Transactions();
               transactions.amount = int.parse(_moneyController.text);
               transactions.categoryId = categoryId;
@@ -131,12 +134,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               transactions.icon = _groupAvatar.value;
               transactions.transactionDate =
                   DateTime.now().millisecondsSinceEpoch;
-              print("Ms =====>" + transactions.toString());
               await Get.find<HomeCubit>().createTransaction(transactions);
-              Navigator.of(modalSheetContext).pop();
               _group.value = "";
               _note.value = "";
               _moneyController.text = "";
+              _groupAvatar.value = "";
             }
           },
           child: SizedBox(
@@ -145,18 +147,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             child: Center(
                 child: Text('Lưu',
                     style: MsTheme.of(context)
-                        .title1
-                        .copyWith(color: MsColors.black))),
+                        .title2
+                        .copyWith(color: MsColors.white))),
           ),
         ),
       ),
       topBarTitle: Text('Thêm giao dịch',
-          style: MsTheme.of(context).title1.copyWith(color: MsColors.black)),
+          style: MsTheme.of(context).title1.copyWith(color: MsColors.white)),
       isTopBarLayerAlwaysVisible: true,
       leadingNavBarWidget: TextButton(
         style: TextButton.styleFrom(
-          foregroundColor: Colors.black,
-          textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          foregroundColor: Colors.white,
+          textStyle: MsTheme.of(context).title2.copyWith(color: MsColors.white),
         ),
         onPressed: () {
           Navigator.of(modalSheetContext).pop();
@@ -181,18 +183,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         padding: const EdgeInsets.only(left: 15),
                         child: Row(
                           children: [
-                            const Icon(Icons.money),
+                            const Icon(
+                              Icons.money,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 10),
                             Expanded(
                                 child: TextField(
                               keyboardType: TextInputType.number,
                               controller: _moneyController,
                               decoration: InputDecoration(
+                                hintStyle: const TextStyle(color: Colors.white),
                                 hintText: 'Số tiền',
                                 border: InputBorder.none,
                                 suffixIcon: IconButton(
                                   onPressed: _moneyController.clear,
-                                  icon: const Icon(Icons.clear, size: 20),
+                                  icon: const Icon(Icons.clear,
+                                      size: 20, color: Colors.grey),
                                 ),
                               ),
                             ))
@@ -240,8 +247,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             builder: (BuildContext context, String value,
                                 Widget? child) {
                               return Text(value.isEmpty ? "Chọn nhóm" : value,
-                                  style: MsTheme.of(context).title1.copyWith(
-                                      color: Colors.black.withOpacity(0.5)));
+                                  style: MsTheme.of(context)
+                                      .title1
+                                      .copyWith(color: Colors.white));
                             },
                             valueListenable: _group,
                           ),
@@ -251,6 +259,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               child: Icon(
                                 Icons.arrow_forward_ios_outlined,
                                 size: 20,
+                                color: Colors.grey,
                               ),
                             ),
                           )
@@ -267,14 +276,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            const Icon(Icons.notes),
+                            const Icon(
+                              Icons.notes,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 10),
                             ValueListenableBuilder<String>(
                               builder: (BuildContext context, String value,
                                   Widget? child) {
                                 return Text(value.isEmpty ? "Ghi chú" : value,
-                                    style: MsTheme.of(context).title1.copyWith(
-                                        color: Colors.black.withOpacity(0.5)));
+                                    style: MsTheme.of(context)
+                                        .title1
+                                        .copyWith(color: Colors.white));
                               },
                               valueListenable: _note,
                             ),
@@ -284,6 +297,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 child: Icon(
                                   Icons.arrow_forward_ios_outlined,
                                   size: 20,
+                                  color: Colors.grey,
                                 ),
                               ),
                             )
@@ -297,14 +311,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            const Icon(Icons.calendar_month),
+                            const Icon(
+                              Icons.calendar_month,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 10),
                             ValueListenableBuilder<int>(
                               builder: (BuildContext context, int value,
                                   Widget? child) {
                                 return Text(formatDate(),
-                                    style: MsTheme.of(context).title1.copyWith(
-                                        color: Colors.black.withOpacity(0.5)));
+                                    style: MsTheme.of(context)
+                                        .title1
+                                        .copyWith(color: Colors.white));
                               },
                               valueListenable: _date,
                             ),
@@ -314,6 +332,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 child: Icon(
                                   Icons.arrow_forward_ios_outlined,
                                   size: 20,
+                                  color: Colors.grey,
                                 ),
                               ),
                             )
@@ -326,13 +345,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         padding: const EdgeInsets.only(left: 15),
                         child: Row(
                           children: [
-                            const Icon(Icons.wallet),
+                            const Icon(
+                              Icons.wallet,
+                              color: Colors.grey,
+                            ),
                             TextButton(
                               onPressed: Navigator.of(modalSheetContext).pop,
                               child: Text(
                                 'Tiền mặt',
-                                style: MsTheme.of(context).title1.copyWith(
-                                    color: Colors.black.withOpacity(0.6)),
+                                style: MsTheme.of(context)
+                                    .title1
+                                    .copyWith(color: Colors.white),
                               ),
                             )
                           ],
@@ -857,6 +880,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           } else {
             transactionParent2 = state.response;
           }
+          return;
+        }
+
+        if (state is CreateTransactionSuccess) {
+          Get.find<HomeCubit>().getCurrentUser();
+          return;
+        }
+
+        if (state is AccountSuccess) {
+          setState(() {
+            _user = state.response;
+            widgetOptions = [
+              DashBoard(user: _user),
+              Transaction(),
+              Addon(),
+              Budget(),
+              Account()
+            ];
+          });
           return;
         }
       },

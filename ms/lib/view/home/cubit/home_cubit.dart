@@ -11,22 +11,30 @@ class HomeCubit extends Cubit<HomeState> {
   Future searchTransactionParent(String query) async {
     try {
       emit(SearchTransactionParentLoading());
-      final userInfo =
-          await api.searchTransactionParent(query);
+      final userInfo = await api.searchTransactionParent(query);
       emit(SearchTransactionParentSuccess(response: userInfo));
     } catch (e) {
       emit(SearchTransactionParentFail(error: e));
     }
   }
 
-    Future createTransaction(Transactions transactions) async {
+  Future createTransaction(Transactions transactions) async {
     try {
       emit(CreateTransactionLoading());
-      final userInfo =
-          await api.createTransaction(transactions);
+      final userInfo = await api.createTransaction(transactions);
       emit(CreateTransactionSuccess(response: userInfo));
     } catch (e) {
       emit(CreateTransactionFail(error: e));
+    }
+  }
+
+  Future getCurrentUser() async {
+    try {
+      emit(AccountLoading());
+      final userInfo = await api.getCurrentUser();
+      emit(AccountSuccess(response: userInfo));
+    } catch (e) {
+      emit(AccountFail(error: e));
     }
   }
 }

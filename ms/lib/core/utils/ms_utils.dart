@@ -1,5 +1,5 @@
 class MsUtils {
-  static String getPathIcons(String path) {
+  static String getPathIcons(String? path) {
     switch (path) {
       case "belongings.png":
         return "assets/images/belongings.png";

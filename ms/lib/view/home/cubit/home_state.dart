@@ -31,3 +31,17 @@ class CreateTransactionFail extends HomeState {
   CreateTransactionFail({this.error});
   final dynamic error;
 }
+
+class AccountInProgress extends HomeState {}
+
+class AccountLoading extends HomeState {}
+
+class AccountSuccess extends HomeState {
+  AccountSuccess({this.response});
+  final dynamic response;
+}
+
+class AccountFail extends HomeState {
+  AccountFail({this.error});
+  final dynamic error;
+}

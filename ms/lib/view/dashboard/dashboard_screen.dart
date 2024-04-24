@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ms/core/component/ms_color.dart';
 import 'package:ms/core/component/ms_theme.dart';
+import 'package:ms/core/utils/ms_utils.dart';
+import 'package:ms/data/model/transactions.dart';
 import 'package:ms/data/model/user.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class DashBoard extends StatefulWidget {
   const DashBoard({Key? key, required this.user}) : super(key: key);
@@ -18,6 +21,13 @@ class _DashBoardState extends State<DashBoard>
   final ScrollController _scrollController = ScrollController();
   late TabController _tabController;
   bool isHidden = false;
+  final pageIndexNotifier = ValueNotifier(0);
+  late final TextEditingController _moneyController = TextEditingController();
+  late final ValueNotifier<String> _group = ValueNotifier<String>("");
+  late final ValueNotifier<String> _groupAvatar = ValueNotifier<String>("");
+  late final ValueNotifier<String> _money = ValueNotifier<String>("");
+  late final ValueNotifier<int> _date = ValueNotifier<int>(0);
+  late final ValueNotifier<String> _note = ValueNotifier<String>("");
 
   @override
   void initState() {
@@ -287,53 +297,503 @@ class _DashBoardState extends State<DashBoard>
             child: SizedBox(
                 height: 400,
                 child: ListView.builder(
-                    padding: const EdgeInsets.all(20),
                     itemCount: widget.user.transactions!.length,
                     itemBuilder: (BuildContext context, int index) {
-                      return Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const Icon(Icons.home),
-                              const SizedBox(width: 20),
-                              Column(
+                      return MaterialButton(
+                          onPressed: () {
+                            _showTransactionsBottomSheet(
+                                context, widget.user.transactions![index]);
+                          },
+                          child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
+                                  ClipOval(
+                                    child: Container(
+                                      color: const Color.fromRGBO(
+                                          143, 148, 251, 1),
+                                      padding: const EdgeInsets.all(8),
+                                      child: Image.asset(
+                                        MsUtils.getPathIcons(widget
+                                            .user.transactions![index].icon),
+                                        width: 25,
+                                        height: 25,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 20),
                                   Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        "${widget.user.transactions![index].categoryName}",
-                                        style: MsTheme.of(context)
-                                            .title1
-                                            .copyWith(
-                                                color: MsColors.textWhite),
-                                      ),
-                                      Text(
-                                        formatDate(widget
-                                            .user.transactions![index].created),
-                                        style: MsTheme.of(context)
-                                            .caption1
-                                            .copyWith(
-                                                color: MsColors.textWhite),
-                                      ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "${widget.user.transactions![index].categoryName}",
+                                            style: MsTheme.of(context)
+                                                .title1
+                                                .copyWith(
+                                                    color: MsColors.textWhite),
+                                          ),
+                                          Text(
+                                            formatDate(widget.user
+                                                .transactions![index].created),
+                                            style: MsTheme.of(context)
+                                                .caption1
+                                                .copyWith(
+                                                    color: MsColors.textWhite),
+                                          ),
+                                        ],
+                                      )
                                     ],
-                                  )
+                                  ),
+                                  Expanded(child: Container()),
+                                  Text(
+                                    convertBalance(
+                                        true,
+                                        widget
+                                            .user.transactions![index].amount),
+                                    style: MsTheme.of(context)
+                                        .caption1
+                                        .copyWith(color: MsColors.textWhite),
+                                  ),
                                 ],
-                              ),
-                              Expanded(child: Container()),
-                              Text(
-                                convertBalance(true,
-                                    widget.user.transactions![index].amount),
-                                style: MsTheme.of(context)
-                                    .caption1
-                                    .copyWith(color: MsColors.textWhite),
-                              ),
-                            ],
-                          ));
+                              )));
                     })))
       ],
+    );
+  }
+
+  void _showTransactionsBottomSheet(
+      BuildContext context, Transactions transactions) {
+    WoltModalSheet.show<void>(
+      pageIndexNotifier: pageIndexNotifier,
+      context: context,
+      pageListBuilder: (modalSheetContext) {
+        final textTheme = Theme.of(context).textTheme;
+        return [
+          page1(modalSheetContext, textTheme, transactions),
+          page2(modalSheetContext, textTheme, transactions),
+        ];
+      },
+      modalTypeBuilder: (context) {
+        return WoltModalType.bottomSheet;
+      },
+      onModalDismissedWithDrag: () {
+        Navigator.of(context).pop();
+        pageIndexNotifier.value = 0;
+      },
+      onModalDismissedWithBarrierTap: () {
+        Navigator.of(context).pop();
+        pageIndexNotifier.value = 0;
+      },
+      maxDialogWidth: 560,
+      minDialogWidth: 400,
+      minPageHeight: 0.0,
+      maxPageHeight: 0.9,
+    );
+  }
+
+  SliverWoltModalSheetPage page1(BuildContext modalSheetContext,
+      TextTheme textTheme, Transactions transactions) {
+    return WoltModalSheetPage(
+      backgroundColor: const Color.fromARGB(255, 34, 32, 32),
+      hasSabGradient: false,
+      isTopBarLayerAlwaysVisible: true,
+      leadingNavBarWidget: TextButton(
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.white,
+          textStyle: MsTheme.of(context).title2.copyWith(color: Colors.white),
+        ),
+        onPressed: () {
+          Navigator.of(modalSheetContext).pop();
+        },
+        child: const Text('Đóng'),
+      ),
+      trailingNavBarWidget: TextButton(
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.white,
+          textStyle: MsTheme.of(context).title2.copyWith(color: Colors.white),
+        ),
+        onPressed: () {
+          pageIndexNotifier.value = 1;
+        },
+        child: const Text('Sửa'),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          Container(
+            decoration:
+                const BoxDecoration(color: Color.fromARGB(135, 68, 63, 63)),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      ValueListenableBuilder<String>(
+                        builder: (BuildContext context, String value,
+                            Widget? child) {
+                          return ClipOval(
+                            child: Container(
+                              color: const Color.fromRGBO(143, 148, 251, 1),
+                              padding: const EdgeInsets.all(8),
+                              child: _groupAvatar.value.isEmpty
+                                  ? Image.asset(
+                                      MsUtils.getPathIcons(transactions.icon),
+                                      width: 25,
+                                      height: 25,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Image.asset(
+                                      MsUtils.getPathIcons(_groupAvatar.value),
+                                      width: 25,
+                                      height: 25,
+                                      fit: BoxFit.cover,
+                                    ),
+                            ),
+                          );
+                        },
+                        valueListenable: _group,
+                      ),
+                      const SizedBox(width: 20),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ValueListenableBuilder<String>(
+                            builder: (BuildContext context, String value,
+                                Widget? child) {
+                              return Text(
+                                  value.isEmpty
+                                      ? transactions.categoryName!
+                                      : value,
+                                  style: MsTheme.of(context)
+                                      .title1
+                                      .copyWith(color: Colors.white));
+                            },
+                            valueListenable: _group,
+                          ),
+                          const SizedBox(height: 10),
+                          ValueListenableBuilder<String>(
+                            builder: (BuildContext context, String value,
+                                Widget? child) {
+                              return Text(
+                                  value.isEmpty
+                                      ? convertBalance(
+                                          true, transactions.amount)
+                                      : convertBalance(true, int.parse(value)),
+                                  style: MsTheme.of(context)
+                                      .title2
+                                      .copyWith(color: Colors.red));
+                            },
+                            valueListenable: _money,
+                          )
+                        ],
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.calendar_month,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 10),
+                      ValueListenableBuilder<int>(
+                        builder:
+                            (BuildContext context, int value, Widget? child) {
+                          return Text(
+                              transactions.transactionDate != null
+                                  ? formatDate(transactions.transactionDate)
+                                  : formatDate(
+                                      DateTime.now().millisecondsSinceEpoch),
+                              style: MsTheme.of(context)
+                                  .title1
+                                  .copyWith(color: Colors.white));
+                        },
+                        valueListenable: _date,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.wallet,
+                        color: Colors.grey,
+                      ),
+                      TextButton(
+                        onPressed: Navigator.of(modalSheetContext).pop,
+                        child: Text(
+                          'Tiền mặt',
+                          style: MsTheme.of(context)
+                              .title1
+                              .copyWith(color: Colors.white),
+                        ),
+                      )
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          MaterialButton(
+            onPressed: () async {},
+            height: 50,
+            color: const Color.fromARGB(135, 68, 63, 63),
+            child: Center(
+              child: Text(
+                "Xóa giao dịch",
+                style: MsTheme.of(context).title2.copyWith(color: Colors.red),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  SliverWoltModalSheetPage page2(BuildContext modalSheetContext,
+      TextTheme textTheme, Transactions transactions) {
+    return WoltModalSheetPage(
+      backgroundColor: const Color.fromARGB(255, 34, 32, 32),
+      hasSabGradient: false,
+      stickyActionBar: Padding(
+        padding: const EdgeInsets.all(10),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(135, 68, 63, 63)),
+          onPressed: () async {},
+          child: SizedBox(
+            height: 16,
+            width: double.infinity,
+            child: Center(
+                child: Text('Lưu',
+                    style: MsTheme.of(context)
+                        .title2
+                        .copyWith(color: MsColors.white))),
+          ),
+        ),
+      ),
+      topBarTitle: Text('Sửa giao dịch',
+          style: MsTheme.of(context).title1.copyWith(color: MsColors.white)),
+      isTopBarLayerAlwaysVisible: true,
+      leadingNavBarWidget: TextButton(
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.white,
+          textStyle: MsTheme.of(context).title2.copyWith(color: MsColors.white),
+        ),
+        onPressed: () {
+          pageIndexNotifier.value = 0;
+          _group.value = "";
+        },
+        child: const Text('Hủy'),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 120),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                decoration:
+                    const BoxDecoration(color: Color.fromARGB(135, 68, 63, 63)),
+                child: Column(
+                  children: [
+                    Padding(
+                        padding: const EdgeInsets.only(left: 15),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.money,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                                child: TextField(
+                              keyboardType: TextInputType.number,
+                              controller: _moneyController,
+                              decoration: InputDecoration(
+                                hintStyle: const TextStyle(color: Colors.white),
+                                hintText: 'Số tiền',
+                                border: InputBorder.none,
+                                suffixIcon: IconButton(
+                                  onPressed: _moneyController.clear,
+                                  icon: const Icon(
+                                    Icons.clear,
+                                    size: 20,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            ))
+                          ],
+                        )),
+                    const Divider(
+                      height: 10,
+                    ),
+                    MaterialButton(
+                      onPressed: () async {},
+                      height: 50,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          ValueListenableBuilder<String>(
+                            builder: (BuildContext context, String value,
+                                Widget? child) {
+                              return ClipOval(
+                                child: Container(
+                                  color: const Color.fromRGBO(143, 148, 251, 1),
+                                  padding: const EdgeInsets.all(8),
+                                  child: _groupAvatar.value.isEmpty
+                                      ? Image.asset(
+                                          'assets/images/dog.png',
+                                          width: 25,
+                                          height: 25,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.asset(
+                                          MsUtils.getPathIcons(
+                                              _groupAvatar.value),
+                                          width: 25,
+                                          height: 25,
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
+                              );
+                            },
+                            valueListenable: _groupAvatar,
+                          ),
+                          const SizedBox(width: 10),
+                          ValueListenableBuilder<String>(
+                            builder: (BuildContext context, String value,
+                                Widget? child) {
+                              return Text(value.isEmpty ? "Chọn nhóm" : value,
+                                  style: MsTheme.of(context)
+                                      .title1
+                                      .copyWith(color: Colors.white));
+                            },
+                            valueListenable: _group,
+                          ),
+                          const Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Icon(
+                                Icons.arrow_forward_ios_outlined,
+                                size: 20,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    const Divider(
+                      height: 10,
+                    ),
+                    MaterialButton(
+                        onPressed: () async {},
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.notes,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 10),
+                            ValueListenableBuilder<String>(
+                              builder: (BuildContext context, String value,
+                                  Widget? child) {
+                                return Text(value.isEmpty ? "Ghi chú" : value,
+                                    style: MsTheme.of(context)
+                                        .title1
+                                        .copyWith(color: Colors.white));
+                              },
+                              valueListenable: _note,
+                            ),
+                            const Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Icon(
+                                  Icons.arrow_forward_ios_outlined,
+                                  color: Colors.grey,
+                                  size: 20,
+                                ),
+                              ),
+                            )
+                          ],
+                        )),
+                    const Divider(
+                      height: 10,
+                    ),
+                    MaterialButton(
+                        onPressed: () async {},
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.calendar_month,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 10),
+                            ValueListenableBuilder<int>(
+                              builder: (BuildContext context, int value,
+                                  Widget? child) {
+                                return Text(
+                                    formatDate(transactions.transactionDate),
+                                    style: MsTheme.of(context)
+                                        .title1
+                                        .copyWith(color: Colors.white));
+                              },
+                              valueListenable: _date,
+                            ),
+                            const Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Icon(
+                                  Icons.arrow_forward_ios_outlined,
+                                  color: Colors.grey,
+                                  size: 20,
+                                ),
+                              ),
+                            )
+                          ],
+                        )),
+                    const Divider(
+                      height: 10,
+                    ),
+                    Padding(
+                        padding: const EdgeInsets.only(left: 15),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.wallet,
+                              color: Colors.grey,
+                            ),
+                            TextButton(
+                              onPressed: Navigator.of(modalSheetContext).pop,
+                              child: Text(
+                                'Tiền mặt',
+                                style: MsTheme.of(context)
+                                    .title1
+                                    .copyWith(color: Colors.white),
+                              ),
+                            )
+                          ],
+                        ))
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
