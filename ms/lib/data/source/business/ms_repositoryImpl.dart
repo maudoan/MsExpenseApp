@@ -20,4 +20,14 @@ class MsRepositoryImpl implements MsRepository {
   Future<Transactions> createTransaction(Transactions param) {
     throw UnimplementedError();
   }
+
+  @override
+  Future deleteTransactions(int id) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Transactions> updateTransaction(int id, Transactions transactions) {
+    throw UnimplementedError();
+  }
 }

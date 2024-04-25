@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:ms/core/component/ms_color.dart';
+import 'package:ms/core/component/ms_loading.dart';
 import 'package:ms/core/component/ms_theme.dart';
 import 'package:ms/core/utils/ms_utils.dart';
 import 'package:ms/data/model/transactions.dart';
 import 'package:ms/data/model/user.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:ms/view/dashboard/cubit/dashboard_cubit.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class DashBoard extends StatefulWidget {
@@ -28,9 +32,13 @@ class _DashBoardState extends State<DashBoard>
   late final ValueNotifier<String> _money = ValueNotifier<String>("");
   late final ValueNotifier<int> _date = ValueNotifier<int>(0);
   late final ValueNotifier<String> _note = ValueNotifier<String>("");
+  late User _user;
 
   @override
   void initState() {
+    _user = widget.user;
+    Get.put(DashBoardCubit(Get.find()));
+    Get.find<DashBoardCubit>().getCurrentUser();
     initializeDateFormatting();
     _tabController = TabController(length: 2, vsync: this);
     super.initState();
@@ -63,6 +71,7 @@ class _DashBoardState extends State<DashBoard>
               ],
             ),
           )),
+          _buildListener()
         ],
       ),
     );
@@ -76,7 +85,7 @@ class _DashBoardState extends State<DashBoard>
           Row(
             children: [
               Text(
-                convertBalance(isHidden, widget.user.totalBalance!),
+                convertBalance(isHidden, _user.totalBalance!),
                 style: MsTheme.of(context)
                     .title1
                     .copyWith(color: MsColors.textWhite),
@@ -163,7 +172,7 @@ class _DashBoardState extends State<DashBoard>
                                   .copyWith(color: MsColors.textWhite),
                             ),
                             Text(
-                              convertBalance(true, widget.user.totalBalance!),
+                              convertBalance(true, _user.totalBalance!),
                               style: MsTheme.of(context)
                                   .title1
                                   .copyWith(color: MsColors.textWhite),
@@ -297,12 +306,12 @@ class _DashBoardState extends State<DashBoard>
             child: SizedBox(
                 height: 400,
                 child: ListView.builder(
-                    itemCount: widget.user.transactions!.length,
+                    itemCount: _user.transactions!.length,
                     itemBuilder: (BuildContext context, int index) {
                       return MaterialButton(
                           onPressed: () {
                             _showTransactionsBottomSheet(
-                                context, widget.user.transactions![index]);
+                                context, _user.transactions![index]);
                           },
                           child: Padding(
                               padding: const EdgeInsets.all(10),
@@ -331,14 +340,14 @@ class _DashBoardState extends State<DashBoard>
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            "${widget.user.transactions![index].categoryName}",
+                                            "${_user.transactions![index].categoryName}",
                                             style: MsTheme.of(context)
                                                 .title1
                                                 .copyWith(
                                                     color: MsColors.textWhite),
                                           ),
                                           Text(
-                                            formatDate(widget.user
+                                            formatDate(_user
                                                 .transactions![index].created),
                                             style: MsTheme.of(context)
                                                 .caption1
@@ -419,6 +428,11 @@ class _DashBoardState extends State<DashBoard>
         ),
         onPressed: () {
           pageIndexNotifier.value = 1;
+          _moneyController.text = transactions.amount.toString();
+          _group.value = transactions.categoryName ?? "";
+          _groupAvatar.value = transactions.icon ?? "";
+          _note.value = transactions.description ?? "";
+          _date.value = transactions.transactionDate!;
         },
         child: const Text('Sửa'),
       ),
@@ -545,7 +559,10 @@ class _DashBoardState extends State<DashBoard>
           ),
           const SizedBox(height: 20),
           MaterialButton(
-            onPressed: () async {},
+            onPressed: () async {
+              Get.find<DashBoardCubit>().deleteTransaction(transactions.id!);
+              Navigator.of(context).pop();
+            },
             height: 50,
             color: const Color.fromARGB(135, 68, 63, 63),
             child: Center(
@@ -617,6 +634,9 @@ class _DashBoardState extends State<DashBoard>
                             const SizedBox(width: 10),
                             Expanded(
                                 child: TextField(
+                              style: MsTheme.of(context)
+                                  .title1
+                                  .copyWith(color: MsColors.white),
                               keyboardType: TextInputType.number,
                               controller: _moneyController,
                               decoration: InputDecoration(
@@ -818,5 +838,30 @@ class _DashBoardState extends State<DashBoard>
     var formattedDate =
         DateFormat('EEEE, dd MMMM yyyy', 'vi_VN').format(dateTime);
     return formattedDate;
+  }
+
+  Widget _buildListener() {
+    return BlocListener(
+      bloc: Get.find<DashBoardCubit>(),
+      listener: (context, state) async {
+        if (state is DeleteTransactionLoading) {
+          MSLoading.show();
+          return;
+        }
+        MSLoading.dismiss();
+
+        if (state is DeleteTransactionSuccess) {
+          Get.find<DashBoardCubit>().getCurrentUser();
+          return;
+        }
+        if (state is AccountSuccess) {
+          setState(() {
+            _user = state.response;
+          });
+          return;
+        }
+      },
+      child: Container(),
+    );
   }
 }

@@ -38,4 +38,24 @@ class ServiceApi implements MsRepository {
     );
     return response;
   }
+
+  @override
+  Future deleteTransactions(int id) {
+    final response = msService.deleteTransactions(id).then(
+      (httpResponse) {
+        return httpResponse;
+      },
+    );
+    return response;
+  }
+
+   @override
+  Future<Transactions> updateTransaction(int id, Transactions transactions) {
+    final response = msService.updateTransactions(id, transactions).then(
+      (httpResponse) {
+        return httpResponse.data;
+      },
+    );
+    return response;
+  }
 }

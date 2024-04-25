@@ -4,6 +4,8 @@ part 'transactions.g.dart';
 
 @JsonSerializable()
 class Transactions {
+  @JsonKey(name: 'id')
+  int? id;
   @JsonKey(name: 'categoryName')
   String? categoryName;
   @JsonKey(name: 'amount')
@@ -22,7 +24,8 @@ class Transactions {
   int? categoryId;
 
   Transactions(
-      {this.categoryName,
+      {this.id,
+      this.categoryName,
       this.amount,
       this.created,
       this.icon,

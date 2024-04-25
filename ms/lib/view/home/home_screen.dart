@@ -190,6 +190,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             const SizedBox(width: 10),
                             Expanded(
                                 child: TextField(
+                              style: MsTheme.of(context)
+                                  .title1
+                                  .copyWith(color: MsColors.white),
                               keyboardType: TextInputType.number,
                               controller: _moneyController,
                               decoration: InputDecoration(

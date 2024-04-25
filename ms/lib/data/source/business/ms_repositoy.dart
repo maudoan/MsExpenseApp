@@ -6,4 +6,6 @@ abstract class MsRepository {
   Future<User?> getCurrentUser();
   Future<List<TransactionParent>> searchTransactionParent(String query);
   Future<Transactions> createTransaction(Transactions param);
+  Future<dynamic>deleteTransactions(int id);
+  Future<Transactions> updateTransaction(int id, Transactions transactions);
 }
