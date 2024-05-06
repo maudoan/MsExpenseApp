@@ -594,7 +594,7 @@ class _DashBoardState extends State<DashBoard>
             child: Center(
                 child: Text('Lưu',
                     style: MsTheme.of(context)
-                        .title2
+                        .title1
                         .copyWith(color: MsColors.white))),
           ),
         ),

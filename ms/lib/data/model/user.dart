@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:ms/data/model/budgets.dart';
 import 'package:ms/data/model/transactions.dart';
 
 part 'user.g.dart';
@@ -19,6 +20,8 @@ class User {
   final List<Transactions>? transactions;
   @JsonKey(name: 'id')
   final int? id;
+  @JsonKey(name: 'budgets')
+  final List<Budgets>? budgets;
 
   User(
       {this.username,
@@ -27,7 +30,8 @@ class User {
       this.role,
       this.totalBalance,
       this.transactions,
-      this.id});
+      this.id,
+      this.budgets});
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 }

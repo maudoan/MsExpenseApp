@@ -58,7 +58,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       DashBoard(user: _user),
       Transaction(),
       Addon(),
-      Budget(),
+      BudgetScreen(
+        user: _user,
+      ),
       Account()
     ];
   }
@@ -147,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             child: Center(
                 child: Text('Lưu',
                     style: MsTheme.of(context)
-                        .title2
+                        .title1
                         .copyWith(color: MsColors.white))),
           ),
         ),
@@ -898,7 +900,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               DashBoard(user: _user),
               Transaction(),
               Addon(),
-              Budget(),
+              BudgetScreen(
+                user: _user,
+              ),
               Account()
             ];
           });
