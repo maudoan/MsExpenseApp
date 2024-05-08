@@ -16,4 +16,14 @@ class BudgetCubit extends Cubit<BudgetState> {
       emit(AccountFail(error: e));
     }
   }
+
+    Future searchTransactionParent(String query) async {
+    try {
+      emit(SearchTransactionParentLoading());
+      final transaction = await api.searchTransactionParent(query);
+      emit(SearchTransactionParentSuccess(response: transaction));
+    } catch (e) {
+      emit(SearchTransactionParentFail(error: e));
+    }
+  }
 }

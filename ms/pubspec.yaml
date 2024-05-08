@@ -120,6 +120,10 @@ flutter:
     - assets/images/water-bill.png  
     - assets/images/shopping-bag.png 
     - assets/images/box.png    
+    - assets/images/global.png
+    - assets/images/vnd.png
+    - assets/images/calendar.png
+    - assets/images/pencil.png
     - assets/icon/ic_empty_data.svg
   # To add assets to your application, add an assets section, like this:
   # assets:

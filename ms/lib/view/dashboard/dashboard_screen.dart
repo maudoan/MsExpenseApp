@@ -514,9 +514,11 @@ class _DashBoardState extends State<DashBoard>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.calendar_month,
-                        color: Colors.grey,
+                      Image.asset(
+                        'assets/images/calendar.png',
+                        width: 25,
+                        height: 25,
+                        fit: BoxFit.cover,
                       ),
                       const SizedBox(width: 10),
                       ValueListenableBuilder<int>(
@@ -538,9 +540,11 @@ class _DashBoardState extends State<DashBoard>
                   const SizedBox(height: 20),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.wallet,
-                        color: Colors.grey,
+                      Image.asset(
+                        'assets/images/salary.png',
+                        width: 25,
+                        height: 25,
+                        fit: BoxFit.cover,
                       ),
                       TextButton(
                         onPressed: Navigator.of(modalSheetContext).pop,
@@ -627,9 +631,11 @@ class _DashBoardState extends State<DashBoard>
                         padding: const EdgeInsets.only(left: 15),
                         child: Row(
                           children: [
-                            const Icon(
-                              Icons.money,
-                              color: Colors.grey,
+                            Image.asset(
+                              'assets/images/vnd.png',
+                              width: 25,
+                              height: 25,
+                              fit: BoxFit.cover,
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -722,9 +728,11 @@ class _DashBoardState extends State<DashBoard>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            const Icon(
-                              Icons.notes,
-                              color: Colors.grey,
+                            Image.asset(
+                              'assets/images/pencil.png',
+                              width: 25,
+                              height: 25,
+                              fit: BoxFit.cover,
                             ),
                             const SizedBox(width: 10),
                             ValueListenableBuilder<String>(
@@ -757,9 +765,11 @@ class _DashBoardState extends State<DashBoard>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            const Icon(
-                              Icons.calendar_month,
-                              color: Colors.grey,
+                            Image.asset(
+                              'assets/images/calendar.png',
+                              width: 25,
+                              height: 25,
+                              fit: BoxFit.cover,
                             ),
                             const SizedBox(width: 10),
                             ValueListenableBuilder<int>(
@@ -792,9 +802,11 @@ class _DashBoardState extends State<DashBoard>
                         padding: const EdgeInsets.only(left: 15),
                         child: Row(
                           children: [
-                            const Icon(
-                              Icons.wallet,
-                              color: Colors.grey,
+                            Image.asset(
+                              'assets/images/salary.png',
+                              width: 25,
+                              height: 25,
+                              fit: BoxFit.cover,
                             ),
                             TextButton(
                               onPressed: Navigator.of(modalSheetContext).pop,
