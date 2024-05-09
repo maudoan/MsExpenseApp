@@ -7,6 +7,7 @@ import 'package:ms/core/component/ms_loading.dart';
 import 'package:ms/core/component/ms_state_page.dart';
 import 'package:ms/core/component/ms_theme.dart';
 import 'package:ms/core/utils/ms_utils.dart';
+import 'package:ms/data/model/budgets.dart';
 import 'package:ms/data/model/transaction_parent.dart';
 import 'package:ms/data/model/user.dart';
 import 'package:ms/view/budget/cubit/budget_cubit.dart';
@@ -26,7 +27,6 @@ class _BudgetScreenState extends State<BudgetScreen>
   final pageIndexNotifier = ValueNotifier(0);
   late final ValueNotifier<String> _group = ValueNotifier<String>("");
   late final ValueNotifier<String> _groupAvatar = ValueNotifier<String>("");
-  late final ValueNotifier<int> _date = ValueNotifier<int>(0);
   late final TextEditingController _moneyController = TextEditingController();
   late List<TransactionParent> transactionParent1 = [];
   late List<TransactionParent> transactionParent2 = [];
@@ -61,7 +61,12 @@ class _BudgetScreenState extends State<BudgetScreen>
       ),
       body: (_user.budgets != null && _user.budgets!.isNotEmpty)
           ? Stack(
-              children: [_buildListener()],
+              children: [
+                Center(
+                  child: Text("MY SUNSHINE"),
+                ),
+                _buildListener()
+              ],
             )
           : Stack(
               children: [
@@ -143,7 +148,25 @@ class _BudgetScreenState extends State<BudgetScreen>
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(135, 68, 63, 63)),
-          onPressed: () async {},
+          onPressed: () async {
+            if (isValidBudget(_moneyController.text, _group.value,
+                _startDateTime.toString(), _endDateTime.value.toString())) {
+              Navigator.of(modalSheetContext).pop();
+              Budgets budgets = Budgets();
+              budgets.amount = int.parse(_moneyController.text);
+              budgets.categoryId = categoryId;
+              budgets.categoryName = _group.value;
+              budgets.categoryType = transactionType;
+              budgets.categoryIcon = _groupAvatar.value;
+              budgets.budgetDateStart =
+                  _startDateTime.value.millisecondsSinceEpoch;
+              budgets.budgetDateEnd = _endDateTime.value.millisecondsSinceEpoch;
+              await Get.find<BudgetCubit>().createBudget(budgets);
+              _group.value = "";
+              _moneyController.text = "";
+              _groupAvatar.value = "";
+            }
+          },
           child: SizedBox(
             height: 16,
             width: double.infinity,
@@ -289,8 +312,8 @@ class _BudgetScreenState extends State<BudgetScreen>
                               fit: BoxFit.cover,
                             ),
                             const SizedBox(width: 20),
-                            ValueListenableBuilder<int>(
-                              builder: (BuildContext context, int value,
+                            ValueListenableBuilder<DateTime>(
+                              builder: (BuildContext context, DateTime value,
                                   Widget? child) {
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,7 +331,7 @@ class _BudgetScreenState extends State<BudgetScreen>
                                   ],
                                 );
                               },
-                              valueListenable: _date,
+                              valueListenable: _startDateTime,
                             ),
                             const Expanded(
                               child: Align(
@@ -799,6 +822,68 @@ class _BudgetScreenState extends State<BudgetScreen>
     return formattedDate;
   }
 
+  bool isValidBudget(
+      String money, String group, String startDate, String endDate) {
+    if (money.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Số tiền không được bỏ trống'),
+          action: SnackBarAction(
+            label: 'Đóng',
+            onPressed: () {
+              // Code to execute.
+            },
+          ),
+        ),
+      );
+      return false;
+    }
+    if (group.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Nhóm không được bỏ trống'),
+          action: SnackBarAction(
+            label: 'Đóng',
+            onPressed: () {
+              // Code to execute.
+            },
+          ),
+        ),
+      );
+      return false;
+    }
+
+    if (startDate.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Ngày tháng không được bỏ trống'),
+          action: SnackBarAction(
+            label: 'Đóng',
+            onPressed: () {
+              // Code to execute.
+            },
+          ),
+        ),
+      );
+      return false;
+    }
+    if (endDate.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Ngày tháng không được bỏ trống'),
+          action: SnackBarAction(
+            label: 'Đóng',
+            onPressed: () {
+              // Code to execute.
+            },
+          ),
+        ),
+      );
+      return false;
+    }
+    return true;
+  }
+
   Widget _buildListener() {
     return BlocListener(
       bloc: Get.find<BudgetCubit>(),
@@ -822,6 +907,12 @@ class _BudgetScreenState extends State<BudgetScreen>
           } else {
             transactionParent2 = state.response;
           }
+          return;
+        }
+
+        if (state is CreateBudgetSuccess) {
+          Get.find<BudgetCubit>().getCurrentUser();
+          setState(() {});
           return;
         }
       },

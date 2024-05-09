@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:ms/core/base/base_response.dart';
 import 'package:ms/core/network/api_helper.dart';
+import 'package:ms/data/model/budgets.dart';
 import 'package:ms/data/model/transaction_parent.dart';
 import 'package:ms/data/model/transactions.dart';
 import 'package:ms/data/model/user.dart';
@@ -36,4 +37,7 @@ abstract class MsService {
   @PUT('http://10.2.9.149:8081/api/transactions/{id}')
   Future<HttpResponse<Transactions>> updateTransactions(
       @Path('id') int id, @Body() Transactions transactions);
+
+  @POST('http://10.2.9.149:8081/api/budget')
+  Future<HttpResponse<Budgets>> createBudget(@Body() Budgets budgets);
 }

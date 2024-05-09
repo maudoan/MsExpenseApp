@@ -7,7 +7,7 @@ class Budgets {
   @JsonKey(name: 'id')
   int? id;
   @JsonKey(name: 'categoryType')
-  String? categoryType;
+  int? categoryType;
   @JsonKey(name: 'amount')
   int? amount;
   @JsonKey(name: 'created')
@@ -19,7 +19,7 @@ class Budgets {
   @JsonKey(name: 'budgetBalance')
   int? budgetBalance;
   @JsonKey(name: 'budgetDateEnd')
-  String? budgetDateEnd;
+  int? budgetDateEnd;
   @JsonKey(name: 'categoryIcon')
   String? categoryIcon;
   @JsonKey(name: 'categoryId')

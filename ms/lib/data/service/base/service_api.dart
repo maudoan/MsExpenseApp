@@ -1,3 +1,4 @@
+import 'package:ms/data/model/budgets.dart';
 import 'package:ms/data/model/transaction_parent.dart';
 import 'package:ms/data/model/transactions.dart';
 import 'package:ms/data/model/user.dart';
@@ -49,9 +50,19 @@ class ServiceApi implements MsRepository {
     return response;
   }
 
-   @override
+  @override
   Future<Transactions> updateTransaction(int id, Transactions transactions) {
     final response = msService.updateTransactions(id, transactions).then(
+      (httpResponse) {
+        return httpResponse.data;
+      },
+    );
+    return response;
+  }
+
+  @override
+  Future<Budgets> createBudget(Budgets param) {
+    final response = msService.createBudget(param).then(
       (httpResponse) {
         return httpResponse.data;
       },
