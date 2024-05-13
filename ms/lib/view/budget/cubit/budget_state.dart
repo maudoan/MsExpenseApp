@@ -32,7 +32,6 @@ class SearchTransactionParentFail extends BudgetState {
   final dynamic error;
 }
 
-
 class CreateBudgetInProgress extends BudgetState {}
 
 class CreateBudgetLoading extends BudgetState {}
@@ -44,5 +43,19 @@ class CreateBudgetSuccess extends BudgetState {
 
 class CreateBudgetFail extends BudgetState {
   CreateBudgetFail({this.error});
+  final dynamic error;
+}
+
+class DeleteBudgetInProgress extends BudgetState {}
+
+class DeleteBudgetLoading extends BudgetState {}
+
+class DeleteBudgetSuccess extends BudgetState {
+  DeleteBudgetSuccess({this.response});
+  final dynamic response;
+}
+
+class DeleteBudgetFail extends BudgetState {
+  DeleteBudgetFail({this.error});
   final dynamic error;
 }

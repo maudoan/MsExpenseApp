@@ -40,4 +40,7 @@ abstract class MsService {
 
   @POST('http://10.2.9.149:8081/api/budget')
   Future<HttpResponse<Budgets>> createBudget(@Body() Budgets budgets);
+
+  @DELETE('http://10.2.9.149:8081/api/budget/{id}')
+  Future<HttpResponse> deleteBudget(@Path('id') int id);
 }

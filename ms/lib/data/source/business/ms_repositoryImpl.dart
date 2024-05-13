@@ -36,4 +36,9 @@ class MsRepositoryImpl implements MsRepository {
   Future<Budgets> createBudget(Budgets param) {
     throw UnimplementedError();
   }
+
+  @override
+  Future deleteBudget(int id) {
+    throw UnimplementedError();
+  }
 }

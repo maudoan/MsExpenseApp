@@ -10,6 +10,7 @@ import 'package:ms/core/utils/ms_utils.dart';
 import 'package:ms/data/model/budgets.dart';
 import 'package:ms/data/model/transaction_parent.dart';
 import 'package:ms/data/model/user.dart';
+import 'package:ms/route/routes.dart';
 import 'package:ms/view/budget/cubit/budget_cubit.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
@@ -62,9 +63,199 @@ class _BudgetScreenState extends State<BudgetScreen>
       body: (_user.budgets != null && _user.budgets!.isNotEmpty)
           ? Stack(
               children: [
-                Center(
-                  child: Text("MY SUNSHINE"),
-                ),
+                ListView.builder(
+                    itemCount: _user.budgets!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Column(
+                        children: [
+                          Card(
+                              color: const Color.fromARGB(137, 141, 131, 131),
+                              child: Padding(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Column(
+                                    children: [
+                                      Center(
+                                        child: Column(
+                                          children: [
+                                            Text("Số tiền bạn có thể chi",
+                                                style: MsTheme.of(context)
+                                                    .title2
+                                                    .copyWith(
+                                                        color: Colors.white)),
+                                            Text(
+                                                convertBalance(
+                                                    true,
+                                                    _user.budgets![index]
+                                                        .amount),
+                                                style: MsTheme.of(context)
+                                                    .title1
+                                                    .copyWith(
+                                                        color: Colors.white)),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      const Divider(),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                  convertBalance(
+                                                      true,
+                                                      _user.budgets![index]
+                                                          .amount),
+                                                  style: MsTheme.of(context)
+                                                      .body1
+                                                      .copyWith(
+                                                          color: Colors.white)),
+                                              Text("Tổng ngân sách",
+                                                  style: MsTheme.of(context)
+                                                      .title2
+                                                      .copyWith(
+                                                          color: Colors.white))
+                                            ],
+                                          ),
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                  convertBalance(
+                                                      true,
+                                                      _user.budgets![index]
+                                                          .amount),
+                                                  style: MsTheme.of(context)
+                                                      .body1
+                                                      .copyWith(
+                                                          color: Colors.white)),
+                                              Text("Tổng đã chi",
+                                                  style: MsTheme.of(context)
+                                                      .title2
+                                                      .copyWith(
+                                                          color: Colors.white))
+                                            ],
+                                          ),
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                  convertBalance(
+                                                      true,
+                                                      _user.budgets![index]
+                                                          .amount),
+                                                  style: MsTheme.of(context)
+                                                      .body1
+                                                      .copyWith(
+                                                          color: Colors.white)),
+                                              Text("Đến cuối tháng",
+                                                  style: MsTheme.of(context)
+                                                      .title2
+                                                      .copyWith(
+                                                          color: Colors.white))
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                      const SizedBox(height: 20),
+                                      index == 0
+                                          ? ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      const Color.fromARGB(
+                                                          135, 68, 63, 63)),
+                                              onPressed: () async {
+                                                _showTransactionsBottomSheet(
+                                                    context);
+                                              },
+                                              child: Center(
+                                                  child: Text('Tạo ngân sách',
+                                                      style: MsTheme.of(context)
+                                                          .body1
+                                                          .copyWith(
+                                                              color: MsColors
+                                                                  .white))),
+                                            )
+                                          : Container()
+                                    ],
+                                  ))),
+                          Card(
+                              color: const Color.fromARGB(137, 141, 131, 131),
+                              child: MaterialButton(
+                                onPressed: () {
+                                  Get.toNamed(
+                                      AppRoute.BUDGET_DETAIL_SCREEN.name,
+                                      arguments: _user.budgets![index]);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      top: 10, bottom: 10),
+                                  child: Row(
+                                    children: [
+                                      ValueListenableBuilder<String>(
+                                        builder: (BuildContext context,
+                                            String value, Widget? child) {
+                                          return ClipOval(
+                                            child: Container(
+                                              color: const Color.fromRGBO(
+                                                  143, 148, 251, 1),
+                                              padding: const EdgeInsets.all(8),
+                                              child: _groupAvatar.value.isEmpty
+                                                  ? Image.asset(
+                                                      MsUtils.getPathIcons(_user
+                                                          .budgets![index]
+                                                          .categoryIcon),
+                                                      width: 25,
+                                                      height: 25,
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                  : Image.asset(
+                                                      MsUtils.getPathIcons(
+                                                          _groupAvatar.value),
+                                                      width: 25,
+                                                      height: 25,
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                            ),
+                                          );
+                                        },
+                                        valueListenable: _group,
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Expanded(
+                                          child: ValueListenableBuilder<String>(
+                                        builder: (BuildContext context,
+                                            String value, Widget? child) {
+                                          return Text(
+                                              value.isEmpty
+                                                  ? _user.budgets![index]
+                                                      .categoryName!
+                                                  : value,
+                                              style: MsTheme.of(context)
+                                                  .title1
+                                                  .copyWith(
+                                                      color: Colors.white));
+                                        },
+                                        valueListenable: _group,
+                                      )),
+                                      Text(
+                                          convertBalance(true,
+                                              _user.budgets![index].amount),
+                                          style: MsTheme.of(context)
+                                              .title1
+                                              .copyWith(color: Colors.white))
+                                    ],
+                                  ),
+                                ),
+                              ))
+                        ],
+                      );
+                    }),
                 _buildListener()
               ],
             )
@@ -359,7 +550,7 @@ class _BudgetScreenState extends State<BudgetScreen>
                               fit: BoxFit.cover,
                             ),
                             TextButton(
-                              onPressed: Navigator.of(modalSheetContext).pop,
+                              onPressed: () {},
                               child: Text(
                                 'Tổng cộng',
                                 style: MsTheme.of(context)
@@ -884,6 +1075,22 @@ class _BudgetScreenState extends State<BudgetScreen>
     return true;
   }
 
+  convertBalance(bool action, int? totalBalance) {
+    NumberFormat formatter = NumberFormat.decimalPatternDigits(
+      locale: 'en_us',
+      decimalDigits: 2,
+    );
+    if (action) {
+      return formatter.format(totalBalance);
+    } else {
+      String total = "";
+      for (int i = 0; i <= formatter.format(totalBalance).length; i++) {
+        total += "*";
+      }
+      return total;
+    }
+  }
+
   Widget _buildListener() {
     return BlocListener(
       bloc: Get.find<BudgetCubit>(),
@@ -912,6 +1119,17 @@ class _BudgetScreenState extends State<BudgetScreen>
 
         if (state is CreateBudgetSuccess) {
           Get.find<BudgetCubit>().getCurrentUser();
+          setState(() {});
+          return;
+        }
+
+        if (state is CreateBudgetFail) {
+          Get.find<BudgetCubit>().getCurrentUser();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Khoảng thời gian thuộc budget này đã tồn tại."),
+            ),
+          );
           setState(() {});
           return;
         }

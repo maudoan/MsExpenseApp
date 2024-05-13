@@ -37,4 +37,14 @@ class BudgetCubit extends Cubit<BudgetState> {
       emit(CreateBudgetFail(error: e));
     }
   }
+
+  Future deleteBudget(int id) async {
+    try {
+      emit(DeleteBudgetLoading());
+      final res = await api.deleteBudget(id);
+      emit(DeleteBudgetSuccess(response: res));
+    } catch (e) {
+      emit(DeleteBudgetFail(error: e));
+    }
+  }
 }

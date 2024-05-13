@@ -10,4 +10,5 @@ abstract class MsRepository {
   Future<dynamic> deleteTransactions(int id);
   Future<Transactions> updateTransaction(int id, Transactions transactions);
   Future<Budgets> createBudget(Budgets param);
+  Future<dynamic> deleteBudget(int id);
 }

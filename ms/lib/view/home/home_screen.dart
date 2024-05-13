@@ -18,8 +18,10 @@ import 'package:ms/view/transaction/transaction_screen.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({required this.user, Key? key}) : super(key: key);
+  const HomeScreen({required this.user, required this.selectedIndex, Key? key})
+      : super(key: key);
   final User user;
+  final int selectedIndex;
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -29,7 +31,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   late List<TransactionParent> transactionParent1 = [];
   late List<TransactionParent> transactionParent2 = [];
-  int selectedIndex = 0;
   late List<Widget> widgetOptions;
   final pageIndexNotifier = ValueNotifier(0);
   late final TextEditingController _moneyController = TextEditingController();
@@ -39,9 +40,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late final ValueNotifier<int> _date = ValueNotifier<int>(0);
   late int categoryId;
   late int transactionType;
+  late int selectedIndex;
 
   @override
   void initState() {
+    selectedIndex = widget.selectedIndex;
     _tabController = TabController(length: 2, vsync: this);
     Get.find<HomeCubit>().searchTransactionParent(
         "userId==${widget.user.id};transactionType==1");

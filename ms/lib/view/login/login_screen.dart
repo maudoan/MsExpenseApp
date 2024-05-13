@@ -212,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (state is AccountSuccess) {
           User user = state.response;
-          Get.offAllNamed(AppRoute.HOME_SCREEN.name, arguments: user);
+          Get.offAllNamed(AppRoute.HOME_SCREEN.name, arguments: [user, 0]);
         }
       },
       child: Container(),

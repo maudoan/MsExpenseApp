@@ -69,4 +69,14 @@ class ServiceApi implements MsRepository {
     );
     return response;
   }
+
+  @override
+  Future deleteBudget(int id) {
+    final response = msService.deleteBudget(id).then(
+      (httpResponse) {
+        return httpResponse;
+      },
+    );
+    return response;
+  }
 }
