@@ -45,3 +45,17 @@ class UpdateTransactionFail extends DashboardState {
   UpdateTransactionFail({this.error});
   final dynamic error;
 }
+
+class SearchTransactionParentInProgress extends DashboardState {}
+
+class SearchTransactionParentLoading extends DashboardState {}
+
+class SearchTransactionParentSuccess extends DashboardState {
+  SearchTransactionParentSuccess({this.response});
+  final dynamic response;
+}
+
+class SearchTransactionParentFail extends DashboardState {
+  SearchTransactionParentFail({this.error});
+  final dynamic error;
+}

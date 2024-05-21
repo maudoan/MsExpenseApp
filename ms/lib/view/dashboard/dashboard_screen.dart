@@ -6,6 +6,7 @@ import 'package:ms/core/component/ms_color.dart';
 import 'package:ms/core/component/ms_loading.dart';
 import 'package:ms/core/component/ms_theme.dart';
 import 'package:ms/core/utils/ms_utils.dart';
+import 'package:ms/data/model/transaction_parent.dart';
 import 'package:ms/data/model/transactions.dart';
 import 'package:ms/data/model/user.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -30,15 +31,23 @@ class _DashBoardState extends State<DashBoard>
   late final ValueNotifier<String> _group = ValueNotifier<String>("");
   late final ValueNotifier<String> _groupAvatar = ValueNotifier<String>("");
   late final ValueNotifier<String> _money = ValueNotifier<String>("");
-  late final ValueNotifier<int> _date = ValueNotifier<int>(0);
   late final ValueNotifier<String> _note = ValueNotifier<String>("");
+  late int categoryId;
+  late int transactionType;
+  final DateTime _date = DateTime.now();
+  late final ValueNotifier<DateTime> _dateTime = ValueNotifier<DateTime>(_date);
   late User _user;
-
+  late List<TransactionParent> transactionParent1 = [];
+  late List<TransactionParent> transactionParent2 = [];
   @override
   void initState() {
     _user = widget.user;
     Get.put(DashBoardCubit(Get.find()));
     Get.find<DashBoardCubit>().getCurrentUser();
+    Get.find<DashBoardCubit>().searchTransactionParent(
+        "userId==${widget.user.id};transactionType==1");
+    Get.find<DashBoardCubit>().searchTransactionParent(
+        "userId==${widget.user.id};transactionType==2");
     initializeDateFormatting();
     _tabController = TabController(length: 2, vsync: this);
     super.initState();
@@ -385,6 +394,8 @@ class _DashBoardState extends State<DashBoard>
         return [
           page1(modalSheetContext, textTheme, transactions),
           page2(modalSheetContext, textTheme, transactions),
+          page3(modalSheetContext, textTheme),
+          page4(modalSheetContext, textTheme),
         ];
       },
       modalTypeBuilder: (context) {
@@ -432,7 +443,8 @@ class _DashBoardState extends State<DashBoard>
           _group.value = transactions.categoryName ?? "";
           _groupAvatar.value = transactions.icon ?? "";
           _note.value = transactions.description ?? "";
-          _date.value = transactions.transactionDate!;
+          _dateTime.value = DateTime.fromMillisecondsSinceEpoch(
+              transactions.transactionDate!);
         },
         child: const Text('Sửa'),
       ),
@@ -521,9 +533,9 @@ class _DashBoardState extends State<DashBoard>
                         fit: BoxFit.cover,
                       ),
                       const SizedBox(width: 10),
-                      ValueListenableBuilder<int>(
-                        builder:
-                            (BuildContext context, int value, Widget? child) {
+                      ValueListenableBuilder<DateTime>(
+                        builder: (BuildContext context, DateTime value,
+                            Widget? child) {
                           return Text(
                               transactions.transactionDate != null
                                   ? formatDate(transactions.transactionDate)
@@ -533,7 +545,7 @@ class _DashBoardState extends State<DashBoard>
                                   .title1
                                   .copyWith(color: Colors.white));
                         },
-                        valueListenable: _date,
+                        valueListenable: _dateTime,
                       ),
                     ],
                   ),
@@ -583,6 +595,8 @@ class _DashBoardState extends State<DashBoard>
 
   SliverWoltModalSheetPage page2(BuildContext modalSheetContext,
       TextTheme textTheme, Transactions transactions) {
+    _dateTime.value =
+        DateTime.fromMillisecondsSinceEpoch(transactions.transactionDate!);
     return WoltModalSheetPage(
       backgroundColor: const Color.fromARGB(255, 34, 32, 32),
       hasSabGradient: false,
@@ -591,7 +605,22 @@ class _DashBoardState extends State<DashBoard>
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(135, 68, 63, 63)),
-          onPressed: () async {},
+          onPressed: () async {
+            transactions.amount = int.parse(_moneyController.text);
+            transactions.categoryId = categoryId;
+            transactions.categoryName = _group.value;
+            transactions.description = _note.value;
+            transactions.transactionType = transactionType;
+            transactions.icon = _groupAvatar.value;
+            transactions.transactionDate =
+                DateTime.now().millisecondsSinceEpoch;
+            await Get.find<DashBoardCubit>()
+                .updateTransaction(transactions.id, transactions);
+            _group.value = "";
+            _note.value = "";
+            _moneyController.text = "";
+            _groupAvatar.value = "";
+          },
           child: SizedBox(
             height: 16,
             width: double.infinity,
@@ -665,7 +694,9 @@ class _DashBoardState extends State<DashBoard>
                       height: 10,
                     ),
                     MaterialButton(
-                      onPressed: () async {},
+                      onPressed: () async {
+                        pageIndexNotifier.value = 2;
+                      },
                       height: 50,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -724,7 +755,9 @@ class _DashBoardState extends State<DashBoard>
                       height: 10,
                     ),
                     MaterialButton(
-                        onPressed: () async {},
+                        onPressed: () async {
+                          pageIndexNotifier.value = 3;
+                        },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
@@ -761,7 +794,9 @@ class _DashBoardState extends State<DashBoard>
                       height: 10,
                     ),
                     MaterialButton(
-                        onPressed: () async {},
+                        onPressed: () async {
+                          _selectDate();
+                        },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
@@ -772,16 +807,16 @@ class _DashBoardState extends State<DashBoard>
                               fit: BoxFit.cover,
                             ),
                             const SizedBox(width: 10),
-                            ValueListenableBuilder<int>(
-                              builder: (BuildContext context, int value,
+                            ValueListenableBuilder<DateTime>(
+                              builder: (BuildContext context, DateTime value,
                                   Widget? child) {
                                 return Text(
-                                    formatDate(transactions.transactionDate),
+                                    formatDate(value.millisecondsSinceEpoch),
                                     style: MsTheme.of(context)
                                         .title1
                                         .copyWith(color: Colors.white));
                               },
-                              valueListenable: _date,
+                              valueListenable: _dateTime,
                             ),
                             const Expanded(
                               child: Align(
@@ -829,6 +864,391 @@ class _DashBoardState extends State<DashBoard>
     );
   }
 
+  SliverWoltModalSheetPage page3(
+      BuildContext modalSheetContext, TextTheme textTheme) {
+    return SliverWoltModalSheetPage(
+        isTopBarLayerAlwaysVisible: true,
+        navBarHeight: 80,
+        topBarTitle: Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: Column(
+              children: [
+                Center(
+                    child: Text("Chọn nhóm",
+                        style: MsTheme.of(context)
+                            .title1
+                            .copyWith(color: MsColors.black))),
+                Container(
+                  height: 35,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                      10,
+                    ),
+                    color: Colors.grey[200],
+                  ),
+                  child: TabBar(
+                    onTap: (index) {
+                      if (index == 0) {
+                        Get.find<DashBoardCubit>().searchTransactionParent(
+                            "userId==${widget.user.id};transactionType==1");
+                      } else {
+                        Get.find<DashBoardCubit>().searchTransactionParent(
+                            "userId==${widget.user.id};transactionType==2");
+                      }
+                    },
+                    controller: _tabController,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.black,
+                    dividerHeight: 0,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                          10,
+                        ),
+                        color: MsColors.grey,
+                        shape: BoxShape.rectangle),
+                    tabs: const [
+                      Tab(
+                        text: 'Khoản chi',
+                      ),
+                      Tab(
+                        text: 'Khoản thu',
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            )),
+        leadingNavBarWidget: IconButton(
+          padding: const EdgeInsets.only(left: 16, right: 16),
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () =>
+              pageIndexNotifier.value = 1,
+        ),
+        trailingNavBarWidget: IconButton(
+          padding: const EdgeInsets.only(left: 16, right: 16),
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            Navigator.of(modalSheetContext).pop();
+            pageIndexNotifier.value = 0;
+            _group.value = "";
+          },
+        ),
+        hasSabGradient: false,
+        mainContentSlivers: [
+          SliverFillRemaining(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: transactionParent1.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Divider(height: 10, color: Colors.grey),
+                          MaterialButton(
+                            onPressed: () async {
+                              _group.value = transactionParent1[index].name!;
+                              _groupAvatar.value =
+                                  transactionParent1[index].icon!;
+                              pageIndexNotifier.value =
+                                  pageIndexNotifier.value - 1;
+                              categoryId = transactionParent1[index].id!;
+                              transactionType =
+                                  transactionParent1[index].transactionType!;
+                            },
+                            height: 50,
+                            color: Colors.black12,
+                            child: Row(
+                              children: [
+                                ClipOval(
+                                  child: Container(
+                                    color:
+                                        const Color.fromRGBO(143, 148, 251, 1),
+                                    padding: const EdgeInsets.all(8),
+                                    child: Image.asset(
+                                      MsUtils.getPathIcons(
+                                          transactionParent1[index].icon!),
+                                      width: 25,
+                                      height: 25,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  transactionParent1[index].name ?? "MS",
+                                  style: MsTheme.of(context)
+                                      .title1
+                                      .copyWith(color: MsColors.textWhite),
+                                )
+                              ],
+                            ),
+                          ),
+                          transactionParent1[index].transactionCategoryChilds !=
+                                  null
+                              ? ListView.builder(
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  itemCount: transactionParent1[index]
+                                      .transactionCategoryChilds
+                                      ?.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index1) {
+                                    return Column(
+                                      children: [
+                                        const Divider(
+                                            height: 10, color: Colors.grey),
+                                        MaterialButton(
+                                          onPressed: () async {
+                                            _group.value =
+                                                transactionParent1[index]
+                                                    .transactionCategoryChilds![
+                                                        index1]
+                                                    .name!;
+                                            _groupAvatar.value =
+                                                transactionParent1[index]
+                                                    .transactionCategoryChilds![
+                                                        index1]
+                                                    .icon!;
+                                            pageIndexNotifier.value =
+                                                pageIndexNotifier.value - 1;
+                                            categoryId =
+                                                transactionParent1[index].id!;
+                                            transactionType =
+                                                transactionParent1[index]
+                                                    .transactionType!;
+                                          },
+                                          height: 50,
+                                          color: Colors.black12,
+                                          child: Row(
+                                            children: [
+                                              const SizedBox(width: 30),
+                                              ClipOval(
+                                                child: Container(
+                                                  color: const Color.fromARGB(
+                                                      255, 19, 204, 43),
+                                                  padding:
+                                                      const EdgeInsets.all(8),
+                                                  child: Image.asset(
+                                                    MsUtils.getPathIcons(
+                                                        transactionParent1[
+                                                                index]
+                                                            .transactionCategoryChilds![
+                                                                index1]
+                                                            .icon!),
+                                                    width: 25,
+                                                    height: 25,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Text(
+                                                transactionParent1[index]
+                                                        .transactionCategoryChilds?[
+                                                            index1]
+                                                        .name ??
+                                                    "MS",
+                                                style: MsTheme.of(context)
+                                                    .title1
+                                                    .copyWith(
+                                                        color:
+                                                            MsColors.textWhite),
+                                              )
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    );
+                                  },
+                                )
+                              : Container(),
+                        ],
+                      );
+                    }),
+                ListView.builder(
+                    itemCount: transactionParent2.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Column(
+                        children: [
+                          const Divider(height: 10, color: Colors.grey),
+                          MaterialButton(
+                            onPressed: () async {
+                              _group.value = transactionParent2[index].name!;
+                              _groupAvatar.value =
+                                  transactionParent2[index].icon!;
+                              pageIndexNotifier.value =
+                                  pageIndexNotifier.value - 1;
+                              categoryId = transactionParent2[index].id!;
+                              transactionType =
+                                  transactionParent2[index].transactionType!;
+                            },
+                            height: 50,
+                            color: Colors.black12,
+                            child: Row(
+                              children: [
+                                ClipOval(
+                                  child: Container(
+                                    color:
+                                        const Color.fromRGBO(143, 148, 251, 1),
+                                    padding: const EdgeInsets.all(8),
+                                    child: Image.asset(
+                                      MsUtils.getPathIcons(
+                                          transactionParent2[index].icon!),
+                                      width: 25,
+                                      height: 25,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  transactionParent2[index].name ?? "MS",
+                                  style: MsTheme.of(context)
+                                      .title1
+                                      .copyWith(color: MsColors.textWhite),
+                                )
+                              ],
+                            ),
+                          ),
+                          transactionParent2[index].transactionCategoryChilds !=
+                                  null
+                              ? ListView.builder(
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  itemCount: transactionParent2[index]
+                                      .transactionCategoryChilds
+                                      ?.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index1) {
+                                    return Column(
+                                      children: [
+                                        const Divider(
+                                            height: 10, color: Colors.grey),
+                                        MaterialButton(
+                                          onPressed: () async {
+                                            _group.value =
+                                                transactionParent2[index]
+                                                    .transactionCategoryChilds![
+                                                        index1]
+                                                    .name!;
+                                            _groupAvatar.value =
+                                                transactionParent2[index]
+                                                    .transactionCategoryChilds![
+                                                        index1]
+                                                    .icon!;
+                                            pageIndexNotifier.value =
+                                                pageIndexNotifier.value - 1;
+                                            categoryId =
+                                                transactionParent2[index].id!;
+                                            transactionType =
+                                                transactionParent2[index]
+                                                    .transactionType!;
+                                          },
+                                          height: 50,
+                                          color: Colors.black12,
+                                          child: Row(
+                                            children: [
+                                              const SizedBox(width: 30),
+                                              ClipOval(
+                                                child: Container(
+                                                  color: const Color.fromARGB(
+                                                      255, 19, 204, 43),
+                                                  padding:
+                                                      const EdgeInsets.all(8),
+                                                  child: Image.asset(
+                                                    MsUtils.getPathIcons(
+                                                        transactionParent2[
+                                                                index]
+                                                            .transactionCategoryChilds![
+                                                                index1]
+                                                            .icon!),
+                                                    width: 25,
+                                                    height: 25,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Text(
+                                                transactionParent2[index]
+                                                        .transactionCategoryChilds?[
+                                                            index1]
+                                                        .name ??
+                                                    "MS",
+                                                style: MsTheme.of(context)
+                                                    .title1
+                                                    .copyWith(
+                                                        color:
+                                                            MsColors.textWhite),
+                                              )
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    );
+                                  },
+                                )
+                              : Container(),
+                        ],
+                      );
+                    }),
+              ],
+            ),
+          ),
+        ]);
+  }
+
+  SliverWoltModalSheetPage page4(
+      BuildContext modalSheetContext, TextTheme textTheme) {
+    return SliverWoltModalSheetPage(
+        isTopBarLayerAlwaysVisible: true,
+        topBarTitle: Center(
+            child: Text("Ghi chú",
+                style: MsTheme.of(context)
+                    .title1
+                    .copyWith(color: MsColors.black))),
+        leadingNavBarWidget: IconButton(
+          padding: const EdgeInsets.only(left: 16, right: 16),
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () {
+            pageIndexNotifier.value = 1;
+            _note.value = "";
+          },
+        ),
+        trailingNavBarWidget: IconButton(
+          padding: const EdgeInsets.only(left: 16, right: 16),
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            Navigator.of(modalSheetContext).pop();
+            pageIndexNotifier.value = 1;
+            _note.value = "";
+          },
+        ),
+        hasSabGradient: false,
+        mainContentSlivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+            sliver: SliverToBoxAdapter(
+              child: TextField(
+                keyboardType: TextInputType.text,
+                minLines: 10,
+                maxLines: null,
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(), hintText: "Nhập ghi chú"),
+                onSubmitted: (value) {
+                  _note.value = value;
+                  pageIndexNotifier.value = 0;
+                },
+              ),
+            ),
+          ),
+        ]);
+  }
+
   convertBalance(bool action, int? totalBalance) {
     NumberFormat formatter = NumberFormat.decimalPatternDigits(
       locale: 'en_us',
@@ -852,6 +1272,20 @@ class _DashBoardState extends State<DashBoard>
     return formattedDate;
   }
 
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _dateTime.value,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _dateTime.value) {
+      setState(() {
+        _dateTime.value = picked;
+      });
+    }
+  }
+
   Widget _buildListener() {
     return BlocListener(
       bloc: Get.find<DashBoardCubit>(),
@@ -870,6 +1304,15 @@ class _DashBoardState extends State<DashBoard>
           setState(() {
             _user = state.response;
           });
+          return;
+        }
+
+        if (state is SearchTransactionParentSuccess) {
+          if (state.response[0].transactionType == 1) {
+            transactionParent1 = state.response;
+          } else {
+            transactionParent2 = state.response;
+          }
           return;
         }
       },

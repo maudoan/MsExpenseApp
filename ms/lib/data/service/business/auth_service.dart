@@ -12,7 +12,9 @@ abstract class AuthService {
   factory AuthService(Dio dio, {String baseUrl}) = _AuthService;
 
   static AuthService create() {
-    final dio = ApiHelper().createDio()..addAuthInterceptors();
+    final dio = ApiHelper().createDio()
+      ..addOneAppLog()
+      ..addAuthInterceptors();
 
     final client = AuthService(dio);
     return client;

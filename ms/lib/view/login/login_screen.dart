@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:ms/core/base/base_response.dart';
 import 'package:ms/core/component/ms_loading.dart';
 import 'package:ms/data/model/login_param.dart';
 import 'package:ms/data/model/user.dart';
@@ -213,6 +214,16 @@ class _LoginScreenState extends State<LoginScreen> {
         if (state is AccountSuccess) {
           User user = state.response;
           Get.offAllNamed(AppRoute.HOME_SCREEN.name, arguments: [user, 0]);
+        }
+
+        if (state is LoginFail) {
+          if (state.error.response.data["message"] == "Bad credentials") {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Tài khoản hoặc mật khẩu không chính xác"),
+              ),
+            );
+          }
         }
       },
       child: Container(),

@@ -14,7 +14,9 @@ abstract class MsService {
   factory MsService(Dio dio, {String baseUrl}) = _MsService;
 
   static MsService create() {
-    final dio = ApiHelper().createDio()..addInterceptors();
+    final dio = ApiHelper().createDio()
+      ..addOneAppLog()
+      ..addInterceptors();
 
     final client = MsService(dio);
     return client;

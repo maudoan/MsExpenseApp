@@ -24,7 +24,7 @@ class ApiHelper {
 
   BaseOptions get opts => BaseOptions(
         // baseUrl: EnvConfig.BASE_URL,
-        baseUrl: 'https://',
+        baseUrl: 'https://10.2.9.149:8081',
         contentType: 'application/json',
         connectTimeout: 300 * 1000, //Chờ 300s
         receiveTimeout: 300 * 1000, //Chờ 300s
@@ -119,7 +119,7 @@ extension AppDioExtension on Dio {
       RequestOptions options, RequestInterceptorHandler handler) async {
     try {
       var _token = await SharedPrefManager.getJWTToken();
-      if(_token == null) {
+      if (_token == null) {
         _token = '';
       }
       final _appSecret = '';

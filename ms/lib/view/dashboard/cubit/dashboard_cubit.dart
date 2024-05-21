@@ -28,13 +28,23 @@ class DashBoardCubit extends Cubit<DashboardState> {
     }
   }
 
-  Future updateTransaction(int id, Transactions transactions) async {
+  Future updateTransaction(int? id, Transactions transactions) async {
     try {
       emit(UpdateTransactionLoading());
-      final transaction = await api.updateTransaction(id, transactions);
+      final transaction = await api.updateTransaction(id!, transactions);
       emit(UpdateTransactionSuccess(response: transaction));
     } catch (e) {
       emit(UpdateTransactionFail(error: e));
+    }
+  }
+
+  Future searchTransactionParent(String query) async {
+    try {
+      emit(SearchTransactionParentLoading());
+      final transaction = await api.searchTransactionParent(query);
+      emit(SearchTransactionParentSuccess(response: transaction));
+    } catch (e) {
+      emit(SearchTransactionParentFail(error: e));
     }
   }
 }

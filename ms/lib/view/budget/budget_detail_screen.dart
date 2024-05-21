@@ -9,7 +9,6 @@ import 'package:ms/core/utils/ms_utils.dart';
 import 'package:ms/data/model/budgets.dart';
 import 'package:ms/data/model/user.dart';
 import 'package:ms/route/routes.dart';
-import 'package:ms/view/budget/budget_screen.dart';
 import 'package:ms/view/budget/cubit/budget_cubit.dart';
 
 class BudgetDetailScreen extends StatefulWidget {
